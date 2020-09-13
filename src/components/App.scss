@@ -307,8 +307,8 @@ h1, h2, h3, h4, h5, h6{
     line-height: calc(0.6rem + 3.5vw);
     }
     @media(min-width: $xs){
-    font-size: calc(0.5rem + 4.5vw);
-    line-height: calc(0.5rem + 4.5vw);   
+    font-size: calc(0.5rem + 4vw);
+    line-height: calc(0.5rem + 4vw);   
     }
     @media(min-width: $s){
     font-size: calc(0.7rem + 4.5vw);
