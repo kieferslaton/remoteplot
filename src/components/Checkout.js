@@ -9,11 +9,11 @@ import {
 import { loadStripe } from "@stripe/stripe-js";
 import { CircularProgress } from "@material-ui/core";
 import axios from "axios";
-import apiKeys from '../apikeys'
-
 import PDF from "./PDF";
 
-const url = process.env.URL || apiKeys.URL;
+require('dotenv').config()
+
+const url = process.env.REACT_APP_URL
 
 const CheckoutForm = ({ cart, passOrderId }) => {
   // axios.get(`${url}/hello/`).then(res => console.log(res)).catch(err => console.log(err))
@@ -578,7 +578,7 @@ const SuccessForm = ({ orderId }) => {
 };
 
 const stripePromise = loadStripe(
-  process.env.STRIPE_PUBLIC || apiKeys.STRIPE_PUBLIC
+  process.env.REACT_APP_STRIPE_PUBLIC
 );
 
 const Checkout = ({ cart }) => {
