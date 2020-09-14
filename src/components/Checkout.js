@@ -6,18 +6,61 @@ import {
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
+import {
+  Table,
+  TableBody,
+  TableRow,
+  TableCell,
+  Paper,
+  Grid,
+  Container,
+  Button,
+  MenuItem,
+  TextField,
+  FormControlLabel,
+  Checkbox,
+  Select,
+  FormControl,
+  RadioGroup,
+  Radio,
+  Divider
+} from "@material-ui/core";
+import { makeStyles } from "@material-ui/core/styles";
 import { loadStripe } from "@stripe/stripe-js";
 import { CircularProgress } from "@material-ui/core";
 import axios from "axios";
 import PDF from "./PDF";
 
-require('dotenv').config()
+const useStyles = makeStyles((theme) => ({
+  row: {
+    justifyContent: "center",
+  },
+  card: {
+    margin: "0 auto",
+    maxWidth: 600,
+    padding: theme.spacing(1, 2),
+    [theme.breakpoints.down("sm")]: {
+      padding: theme.spacing(1),
+    },
+  },
+  paper: {
+    border: "1px solid #d3d3d3",
+    padding: theme.spacing(2),
+    justifyContent: "center",
+    borderRadius: 0,
+  },
+  button: {
+    margin: theme.spacing(2),
+  },
+}));
 
-const url = process.env.REACT_APP_URL
+require("dotenv").config();
+
+const url = process.env.REACT_APP_URL;
 
 const CheckoutForm = ({ cart, passOrderId }) => {
   // axios.get(`${url}/hello/`).then(res => console.log(res)).catch(err => console.log(err))
-
+  const classes = useStyles();
   const stripe = useStripe();
   const elements = useElements();
 
@@ -40,7 +83,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
       state: "",
       zip: "",
       items: [],
-      shipOption: {
+      shipMenuItem: {
         name: "ground",
         price: 9.99,
       },
@@ -80,7 +123,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
     let shipTotal = 0;
 
     ship.forEach((addr) => {
-      shipTotal += addr.shipOption.price;
+      shipTotal += addr.shipMenuItem.price;
     });
 
     let total = 0;
@@ -88,7 +131,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
     total += shipTotal;
 
     setCartSubtotal(subtotal);
-    setShipTotal(shipTotal)
+    setShipTotal(shipTotal);
     setCartTotal(total);
   }, [cart, ship, localCart]);
 
@@ -108,12 +151,12 @@ const CheckoutForm = ({ cart, passOrderId }) => {
   const handleShipSelected = (e) => {
     const { name, value } = e.target;
     let shipClone = [...ship];
-    shipClone[name].shipOption = {
-        name: value,
-        price: value === "ground" ? 9.99 : 42.99
-    }
+    shipClone[name].shipMenuItem = {
+      name: value,
+      price: value === "ground" ? 9.99 : 42.99,
+    };
     setShip(shipClone);
-  }
+  };
 
   const addAddress = (e) => {
     e.preventDefault();
@@ -124,7 +167,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
         street2: "",
         zip: "",
         items: [],
-        shipOption: {
+        shipMenuItem: {
           name: "ground",
           price: 9.99,
         },
@@ -197,310 +240,300 @@ const CheckoutForm = ({ cart, passOrderId }) => {
   };
 
   return (
-    <div className="container">
-      <div className="row">
-        <div className="checkout-column">
-            <div className="checkout-form card" style={{ display: "none" }}>
+    <Container className="container">
+      <Grid container>
+        <Grid item xs={12} md={6}>
+          <div className={classes.card} style={{ display: "none" }}>
+            <Paper elevation={3} className={classes.paper}>
               <p>Have an Account?</p>
-              <button className="button" style={{ marginLeft: 10 }}>
-                Sign In
-              </button>
-            </div>
-            <div className="checkout-form card">
-              <div className="row">
+              <button style={{ marginLeft: 10 }}>Sign In</button>
+            </Paper>
+          </div>
+          <div className={classes.card}>
+            <Paper elevation={3} className={classes.paper}>
+              <Grid container>
                 <h5>Contact</h5>
-              </div>
-                <div className="row-no-wrap">
-                  <input
+              </Grid>
+              <Grid container spacing={3}>
+                <Grid item xs={6}>
+                  <TextField
                     type="text"
                     name="firstName"
                     value={contact.firstName}
                     onChange={handleContactChange}
-                    placeholder="First Name"
-                    style={{ width: "50%" }}
+                    label="First Name"
+                    fullWidth
                   />
-                  <input
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
                     type="text"
                     name="lastName"
                     value={contact.lastName}
                     onChange={handleContactChange}
-                    placeholder="Last Name"
-                    style={{ width: "50%" }}
+                    label="Last Name"
+                    fullWidth
                   />
-                </div>
-                <div className="row-no-wrap">
-                  <input
+                </Grid>
+              </Grid>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <TextField
                     type="email"
                     name="email"
                     value={contact.email}
                     onChange={handleContactChange}
-                    placeholder="Email"
+                    label="Email"
+                    fullWidth
                   />
-                </div>
-                <div className="row-no-wrap">
-                  <input
+                </Grid>
+              </Grid>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <TextField
                     type="tel"
                     name="tel"
                     value={contact.tel}
                     onChange={handleContactChange}
-                    placeholder="Phone"
+                    label="Phone"
+                    fullWidth
                   />
-                </div>
-            </div>
-            <div className="checkout-form card">
-              <div className="row">
+                </Grid>
+              </Grid>
+            </Paper>
+          </div>
+          <div className={classes.card}>
+            <Paper elevation={3} className={classes.paper}>
+              <Grid container>
                 <h5>Shipping Address</h5>
-              </div>
-                <div className="row-no-wrap">
-                  <label htmlFor="multiple-address">
-                    <input
-                      type="checkbox"
-                      id="multiple-address"
-                      style={{ display: "inline" }}
-                      onChange={() => setMultiAddress(!multiAddress)}
-                    />
-                    I need to ship to multiple addresses.
-                  </label>
-                </div>
-                {ship.map((addr, index) => (
-                  <div key={addr}>
-                    <div
-                      className="row-no-wrap"
-                      style={{ display: multiAddress ? "" : "none" }}
-                    >
-                      <h3>Address {index + 1}</h3>
-                    </div>
-                    <div className="row-no-wrap">
-                      <input
+              </Grid>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        id="multiple-address"
+                        style={{ display: "inline" }}
+                        onChange={() => setMultiAddress(!multiAddress)}
+                      />
+                    }
+                    label="I need to ship to multiple addresses."
+                  />
+                </Grid>
+              </Grid>
+              {ship.map((addr, index) => (
+                <div key={addr}>
+                  <Grid
+                    container
+                    style={{ display: multiAddress ? "" : "none" }}
+                  >
+                    <h3>Address {index + 1}</h3>
+                  </Grid>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                      <TextField
                         type="text"
-                        placeholder="Street Address"
+                        label="Street Address"
+                        fullWidth
                         name={`${index} street1`}
                         value={addr.street1}
                         onChange={handleShipChange}
                       />
-                    </div>
-                    <div className="row-no-wrap">
-                      <input
+                    </Grid>
+                  </Grid>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                      <TextField
                         type="text"
-                        placeholder="Apt, Suite, etc."
+                        label="Apt, Suite, etc."
+                        fullWidth
                         name={`${index} street2`}
                         value={addr.street2}
                         onChange={handleShipChange}
                       />
-                    </div>
-                    <div className="row-no-wrap">
-                      <input
+                    </Grid>
+                  </Grid>
+                  <Grid container spacing={3}>
+                    <Grid item xs={6}>
+                      <TextField
                         type="text"
-                        placeholder="City"
+                        label="City"
                         name={`${index} city`}
                         value={addr.city}
                         onChange={handleShipChange}
-                        style={{width: "50%"}}
+                        fullWidth
                       />
-                      <select
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        type="text"
+                        label="State"
                         name={`${index} state`}
-                        style={{width: "20%"}}
                         value={addr.state}
                         onChange={handleShipChange}
-                      >
-                        <option value="">State</option>
-                        <option value="AL">Alabama</option>
-                        <option value="AK">Alaska</option>
-                        <option value="AZ">Arizona</option>
-                        <option value="AR">Arkansas</option>
-                        <option value="CA">California</option>
-                        <option value="CO">Colorado</option>
-                        <option value="CT">Connecticut</option>
-                        <option value="DE">Delaware</option>
-                        <option value="DC">District Of Columbia</option>
-                        <option value="FL">Florida</option>
-                        <option value="GA">Georgia</option>
-                        <option value="HI">Hawaii</option>
-                        <option value="ID">Idaho</option>
-                        <option value="IL">Illinois</option>
-                        <option value="IN">Indiana</option>
-                        <option value="IA">Iowa</option>
-                        <option value="KS">Kansas</option>
-                        <option value="KY">Kentucky</option>
-                        <option value="LA">Louisiana</option>
-                        <option value="ME">Maine</option>
-                        <option value="MD">Maryland</option>
-                        <option value="MA">Massachusetts</option>
-                        <option value="MI">Michigan</option>
-                        <option value="MN">Minnesota</option>
-                        <option value="MS">Mississippi</option>
-                        <option value="MO">Missouri</option>
-                        <option value="MT">Montana</option>
-                        <option value="NE">Nebraska</option>
-                        <option value="NV">Nevada</option>
-                        <option value="NH">New Hampshire</option>
-                        <option value="NJ">New Jersey</option>
-                        <option value="NM">New Mexico</option>
-                        <option value="NY">New York</option>
-                        <option value="NC">North Carolina</option>
-                        <option value="ND">North Dakota</option>
-                        <option value="OH">Ohio</option>
-                        <option value="OK">Oklahoma</option>
-                        <option value="OR">Oregon</option>
-                        <option value="PA">Pennsylvania</option>
-                        <option value="RI">Rhode Island</option>
-                        <option value="SC">South Carolina</option>
-                        <option value="SD">South Dakota</option>
-                        <option value="TN">Tennessee</option>
-                        <option value="TX">Texas</option>
-                        <option value="UT">Utah</option>
-                        <option value="VT">Vermont</option>
-                        <option value="VA">Virginia</option>
-                        <option value="WA">Washington</option>
-                        <option value="WV">West Virginia</option>
-                        <option value="WI">Wisconsin</option>
-                        <option value="WY">Wyoming</option>
-                      </select>
-                    </div>
-                    <div className="row-no-wrap">
-                      <input
+                        fullWidth
+                      />
+                    </Grid>
+                  </Grid>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                      <TextField
                         type="string"
-                        placeholder="ZIP Code"
+                        label="ZIP Code"
+                        fullWidth
                         name={`${index} zip`}
                         value={addr.zip}
                         onChange={handleShipChange}
                       />
-                    </div>
-                    <div className="row">
-                      <h6>Shipping</h6>
-                      <label>
-                        <input
-                          type="radio"
-                          name={index}
-                          value="ground"
-                          onClick={handleShipSelected}
-                          checked={
-                            addr.shipOption.name === "ground" ? true : false
-                          }
-                        />
-                        Fedex 2-3 Day Ground $9.99
-                      </label>
-                      <label>
-                        <input
-                          type="radio"
-                          name={index}
-                          value="next-day"
-                          onClick={handleShipSelected}
-                          checked={
-                            addr.shipOption.name === "next-day" ? true : false
-                          }
-                        />
-                        Fedex Next Day Air $42.99
-                      </label>
-                    </div>
-                    <div
-                      className="row divider"
-                      style={{ display: multiAddress ? "" : "none" }}
-                    ></div>
-                  </div>
-                ))}
-                <div
-                  className="row-no-wrap"
-                  style={{ display: multiAddress ? "" : "none" }}
-                >
-                  <button className="button" onClick={addAddress}>
-                    Add Another Address
-                    <FaPlusCircle style={{ marginLeft: 10 }} />
-                  </button>
+                    </Grid>
+                  </Grid>
+                  <Grid container style={{ marginTop: 10 }} className={classes.row}>
+                    <h6>Shipping</h6>
+                    <Grid item xs={12} sm={10} md={8}>
+                    <RadioGroup>
+                      <FormControlLabel
+                        control={
+                          <Radio
+                            name={index}
+                            value="ground"
+                            onClick={handleShipSelected}
+                            checked={
+                              addr.shipMenuItem.name === "ground" ? true : false
+                            }
+                          />
+                        }
+                        label="Fedex 2-3 Day Ground $9.99"
+                      />
+                      <FormControlLabel
+                        control={
+                          <Radio
+                            name={index}
+                            value="next-day"
+                            onClick={handleShipSelected}
+                            checked={
+                              addr.shipMenuItem.name === "next-day"
+                                ? true
+                                : false
+                            }
+                          />
+                        }
+                        label="Fedex Next Day Air $42.99"
+                      />
+                    </RadioGroup>
+                    </Grid>
+                  </Grid>
+                  <Divider style={{ display: multiAddress ? "" : "none", margin: 20 }}/>
                 </div>
-            </div>
+              ))}
+              <Grid container className={classes.row}
+                style={{ display: multiAddress ? "" : "none" }}
+              >
+                <Button variant="outlined" color="primary" onClick={addAddress}>
+                  Add Another Address
+                  <FaPlusCircle style={{ marginLeft: 10 }} />
+                </Button>
+              </Grid>
+            </Paper>
           </div>
-        <div className="checkout-column">
-          <div className="checkout-form card">
-            <h5>Items</h5>
-            <table className="checkout-items">
-              <colgroup>
-                  <col span='1' style={{width: '20%'}}/>
-                  <col span='1' style={{width: '20%'}}/>   
-                  <col span='1' style={{width: '10%'}}/>   
-                  <col span='1' style={{width: '20%'}}/>         
-              </colgroup>
-              <tbody>
-                {localCart.map((url) => (
-                  <Fragment key={url}>
-                    <tr>
-                      <th
-                        rowSpan={url.length + 1}
-                        style={{ borderRight: "1px solid #d3d3d3", padding: 0, width: 80 }}
-                      >
-                        <PDF url={url[0].url} width={70} />
-                      </th>
-                      <th className="type">Type</th>
-                      <th className="qty">Qty</th>
-                      <th className="price">Price</th>
-                    </tr>
-                    <>
-                      {url.map((item) => (
-                        <tr key={item.name}>
-                          <td style={{ fontSize: "0.8rem" }} className="type">
-                            {item.name} {item.colorOption}{" "}
-                            {item.bg ? "Background" : "No Background"}
-                          </td>
-                          <td className="qty">{item.qty * ship.length}</td>
-                          <td className="price">
-                            ${(item.price * item.qty * ship.length).toFixed(2)}
-                          </td>
-                        </tr>
-                      ))}
-                    </>
-                  </Fragment>
-                ))}
-                <tr>
-                  <td colSpan={2}></td>
-                  <td>Subtotal:</td>
-                  <td>${cartSubtotal.toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <td colSpan={2}></td>
-                  <td>Shipping:</td>
-                  <td>${shipTotal.toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <td colSpan={2}></td>
-                  <td>Total:</td>
-                  <td>${cartTotal.toFixed(2)}</td>
-                </tr>
-              </tbody>
-            </table>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <div className={classes.card}>
+            <Paper elevation={3} className={classes.paper}>
+              <h5>Items</h5>
+              <Table>
+                <TableBody>
+                  {localCart.map((url) => (
+                    <Fragment key={url}>
+                      <TableRow>
+                        <TableCell
+                          rowSpan={url.length + 1}
+                          style={{
+                            borderRight: "1px solid #d3d3d3",
+                            padding: 0,
+                            width: 80,
+                          }}
+                        >
+                          <PDF url={url[0].url} width={70} />
+                        </TableCell>
+                        <TableCell>Type</TableCell>
+                        <TableCell>Qty</TableCell>
+                        <TableCell>Price</TableCell>
+                      </TableRow>
+                      <>
+                        {url.map((item) => (
+                          <TableRow key={item.name}>
+                            <TableCell style={{ fontSize: "0.8rem" }}>
+                              {item.name} {item.colorMenuItem}{" "}
+                              {item.bg ? "Background" : "No Background"}
+                            </TableCell>
+                            <TableCell>{item.qty * ship.length}</TableCell>
+                            <TableCell>
+                              $
+                              {(item.price * item.qty * ship.length).toFixed(2)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </>
+                    </Fragment>
+                  ))}
+                  <TableRow>
+                    <TableCell colSpan={2}></TableCell>
+                    <TableCell>Subtotal:</TableCell>
+                    <TableCell>${cartSubtotal.toFixed(2)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={2}></TableCell>
+                    <TableCell>Shipping:</TableCell>
+                    <TableCell>${shipTotal.toFixed(2)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={2}></TableCell>
+                    <TableCell>Total:</TableCell>
+                    <TableCell>${cartTotal.toFixed(2)}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </Paper>
           </div>
-          <div className="card payment-form">
-            <h5 style={{ marginBottom: 10 }}>Payment</h5>
-            <CardElement
-              options={{
-                style: {
-                  base: {
-                    fontSize: "16px",
+          <div className={classes.card}>
+            <Paper elevation={3} className={classes.paper}>
+              <h5 style={{ marginBottom: 10 }}>Payment</h5>
+              <CardElement
+                MenuItems={{
+                  style: {
+                    base: {
+                      fontSize: "16px",
+                    },
                   },
-                },
-              }}
-            />
-            <button
-              className="button"
-              onClick={handlePay}
-              style={{
-                margin: '20px auto',
-                pointerEvents: paymentProcessing ? "none" : "",
-              }}
-            >
-              {paymentProcessing ? (
-                <CircularProgress size={20} style={{ color: "#c30017" }} />
-              ) : (
-                `Pay $${cartTotal.toFixed(2)}`
-              )}
-            </button>
+                }}
+              />
+              <Grid container className={classes.row}>
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={handlePay}
+                style={{
+                  margin: "20px auto",
+                  pointerEvents: paymentProcessing ? "none" : "",
+                }}
+              >
+                {paymentProcessing ? (
+                  <CircularProgress size={20} style={{ color: "#c30017" }} />
+                ) : (
+                  `Pay $${cartTotal.toFixed(2)}`
+                )}
+              </Button>
+              </Grid>
+            </Paper>
           </div>
-        </div>
-      </div>
-    </div>
+        </Grid>
+      </Grid>
+    </Container>
   );
 };
 
 const SuccessForm = ({ orderId }) => {
+  const classes = useStyles()
   const [order, setOrder] = useState(null);
 
   useEffect(() => {
@@ -513,63 +546,63 @@ const SuccessForm = ({ orderId }) => {
   return (
     <>
       {order ? (
-        <div className="container">
-          <div className="card checkout-form">
+        <Container className="container">
+          <Grid container className={classes.row}>
+          <Grid item xs={12} className={classes.card}>
+          <Paper className={classes.paper}>
             <h3>Your Order is Complete.</h3>
-            <table className="checkout-items">
-            <colgroup>
-                  <col span='1' style={{width: '20%'}}/>
-                  <col span='1' style={{width: '20%'}}/>   
-                  <col span='1' style={{width: '10%'}}/>   
-                  <col span='1' style={{width: '20%'}}/>         
-              </colgroup>
-              <tbody>
-                <tr>
-                  <td colSpan={4}>Order Number: #{order.orderNumber}</td>
-                </tr>
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableCell colSpan={4}>Order Number: #{order.orderNumber}</TableCell>
+                </TableRow>
                 {order.ship.map((addr) => (
                   <>
-                    <tr>
-                      <td colSpan={4}>
+                    <TableRow>
+                      <TableCell colSpan={4}>
                         Shipping To: <br />
                         {addr.street1} {addr.street2}
                         <br />
                         {addr.city}, {addr.state} {addr.zip}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                     {addr.items.map((url) => (
                       <>
-                        <tr>
-                          <th
+                        <TableRow>
+                          <TableCell
                             rowSpan={url.length + 1}
                             style={{ borderRight: "1px solid #d3d3d3" }}
                           >
                             <PDF url={url[0].url} width={70} />
-                          </th>
-                          <th>Type</th>
-                          <th>Qty</th>
-                          <th style={{width: 50}}>Price</th>
-                        </tr>
+                          </TableCell>
+                          <TableCell>Type</TableCell>
+                          <TableCell>Qty</TableCell>
+                          <TableCell style={{ width: 50 }}>Price</TableCell>
+                        </TableRow>
                         <>
                           {url.map((item) => (
-                            <tr key={item.name}>
-                              <td style={{ fontSize: "0.8rem" }}>
-                                {item.name} {item.colorOption}{" "}
+                            <TableRow key={item.name}>
+                              <TableCell style={{ fontSize: "0.8rem" }}>
+                                {item.name} {item.colorMenuItem}{" "}
                                 {item.bg ? "Background" : "No Background"}
-                              </td>
-                              <td>{item.qty}</td>
-                              <td style={{width: 50}}>${(item.price * item.qty).toFixed(2)}</td>
-                            </tr>
+                              </TableCell>
+                              <TableCell>{item.qty}</TableCell>
+                              <TableCell style={{ width: 50 }}>
+                                ${(item.price * item.qty).toFixed(2)}
+                              </TableCell>
+                            </TableRow>
                           ))}
                         </>
                       </>
                     ))}
                   </>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+              </TableBody>
+            </Table>
+            </Paper>
+          </Grid>
+        </Grid>
+        </Container>
       ) : (
         ""
       )}
@@ -577,9 +610,7 @@ const SuccessForm = ({ orderId }) => {
   );
 };
 
-const stripePromise = loadStripe(
-  process.env.REACT_APP_STRIPE_PUBLIC
-);
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC);
 
 const Checkout = ({ cart }) => {
   const [orderId, setOrderId] = useState(null);

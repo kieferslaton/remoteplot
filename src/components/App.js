@@ -8,17 +8,109 @@ import {
   FaEnvelope,
   FaLocationArrow,
 } from "react-icons/fa";
-import { Drawer } from "@material-ui/core";
+import { makeStyles } from "@material-ui/core/styles";
+import {
+  AppBar,
+  Toolbar,
+  Button,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  Grid,
+} from "@material-ui/core";
 
-
-import logo from '../images/logo.png'
+import logo from "../images/logo.png";
 import logoRed from "../images/logo-red.png";
 import Home from "./Home";
 import Print from "./Print";
 import Cart from "./Cart";
-import Checkout from './Checkout';
+import Checkout from "./Checkout";
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    flexGrow: 1,
+  },
+  appBar: {
+    backgroundColor: "white",
+    position: "relative",
+  },
+  logo: {
+    height: 40,
+    [theme.breakpoints.down("sm")]: {
+      flexGrow: 1,
+    },
+  },
+  navLinks: {
+    display: "flex",
+    margin: theme.spacing(2),
+    flexGrow: 1,
+    [theme.breakpoints.down("sm")]: {
+      display: "none",
+    },
+  },
+  navLink: {
+    margin: theme.spacing(0, 2),
+  },
+  navButtons: {
+    [theme.breakpoints.down("sm")]: {
+      display: "none",
+    },
+  },
+  navToggle: {
+    [theme.breakpoints.up("md")]: {
+      display: "none",
+    },
+  },
+  drawer: {
+    width: 250,
+    position: "relative",
+  },
+  drawerPaper: {
+    width: 250,
+  },
+  mobileNavItems: {
+    height: "100%",
+    width: "100%",
+    position: "relative",
+  },
+  mobileNavItem: {
+    borderBottom: "1px solid #d3d3d3",
+    "&:last-child": {
+      position: "absolute",
+      bottom: 0,
+      width: 250,
+      borderTop: "1px solid #d3d3d3",
+      borderBottom: "none",
+    },
+  },
+  mobileNavLink: {
+    height: "100%",
+    width: "100%",
+    padding: 10,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  footer: {
+    backgroundColor: "#292b2c",
+    color: "white",
+    justifyContent: "center",
+    padding: theme.spacing(2),
+  },
+  footerCol: {
+    textAlign: "center",
+  },
+  footerText: {
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "0.7em",
+    },
+  },
+}));
 
 function App() {
+  const classes = useStyles();
+
   const [open, setOpen] = useState(false);
   const [cart, setCart] = useState([]);
   const [cartQty, setCartQty] = useState(0);
@@ -48,13 +140,13 @@ function App() {
   };
 
   const removeItemFromCart = (item) => {
-    if(cart.length === 1){
-      setCart([])
+    if (cart.length === 1) {
+      setCart([]);
     } else {
-    let itemId = item.name + item.url;
-    setCart((prevCart) =>
-      prevCart.filter((cartItem) => cartItem.name + cartItem.url !== itemId)
-    );
+      let itemId = item.name + item.url;
+      setCart((prevCart) =>
+        prevCart.filter((cartItem) => cartItem.name + cartItem.url !== itemId)
+      );
     }
   };
 
@@ -66,21 +158,21 @@ function App() {
     let index = cart.findIndex(
       (cartItem) => cartItem.name + cartItem.url === itemId
     );
-    let cloneCart = [...cart]
-    cloneCart[index]={
+    let cloneCart = [...cart];
+    cloneCart[index] = {
       name: foundItem.name,
-      height: foundItem.height, 
-      width: foundItem.width, 
-      colorOption: foundItem.colorOption, 
-      bg: foundItem.bg, 
+      height: foundItem.height,
+      width: foundItem.width,
+      colorOption: foundItem.colorOption,
+      bg: foundItem.bg,
       price: foundItem.price,
       qty: foundItem.qty - 1,
       url: foundItem.url,
-      added: foundItem.added
+      added: foundItem.added,
     };
     setCart(cloneCart);
   };
-  
+
   const incrementQuantity = (item) => {
     let itemId = item.name + item.url;
     let foundItem = cart.find(
@@ -89,84 +181,91 @@ function App() {
     let index = cart.findIndex(
       (cartItem) => cartItem.name + cartItem.url === itemId
     );
-    let cloneCart = [...cart]
-    cloneCart[index]={
+    let cloneCart = [...cart];
+    cloneCart[index] = {
       name: foundItem.name,
-      height: foundItem.height, 
-      width: foundItem.width, 
-      colorOption: foundItem.colorOption, 
-      bg: foundItem.bg, 
+      height: foundItem.height,
+      width: foundItem.width,
+      colorOption: foundItem.colorOption,
+      bg: foundItem.bg,
       price: foundItem.price,
       qty: foundItem.qty + 1,
       url: foundItem.url,
-      added: foundItem.added
+      added: foundItem.added,
     };
     setCart(cloneCart);
   };
 
   return (
-    <Router style={{ position: "relative" }}>
-      <div>
-        <nav className="navbar">
-          <Link to="/" className="logo">
-            <img src={logoRed} alt="logo" />
-          </Link>
-          <ul className="nav-links">
-            <li>
-              <Link to="/">Home</Link>
-            </li>
-            <li>
-              <Link to="/print">Print</Link>
-            </li>
-          </ul>
-          <div className="nav-buttons">
-            <button className="button">
-              <Link to="/cart">Cart({cart ? cartQty : "0"})</Link>
-              <FaShoppingCart className="button-icon" size={20} />
-            </button>
-            <button className="button login" style={{display: 'none'}}>
-              <p>Login</p>
-              <FaUserCircle className="button-icon" size={20} />
-            </button>
-          </div>
-          <button className="nav-toggle" onClick={() => setOpen(true)}>
-            <FaBars size={20} />
-          </button>
-        </nav>
+    <Router>
+      <div className={classes.root}>
+        <AppBar position="static" className={classes.appBar}>
+          <Toolbar>
+            <Link to="/" className={classes.logo}>
+              <img src={logoRed} alt="logo" style={{ height: 40 }} />
+            </Link>
+            <ul className={classes.navLinks}>
+              <li className={classes.navLink}>
+                <Link to="/">Home</Link>
+              </li>
+              <li className={classes.navLink}>
+                <Link to="/print">Print</Link>
+              </li>
+            </ul>
+            <div className={classes.navButtons}>
+              <Button className={classes.navButton}>
+                <Link to="/cart">Cart ({cart ? cartQty : "0"})</Link>
+                <FaShoppingCart className="button-icon" size={20} />
+              </Button>
+              <Button className={classes.navButton} style={{ display: "none" }}>
+                <p>Login</p>
+                <FaUserCircle className="button-icon" size={20} />
+              </Button>
+            </div>
+            <IconButton
+              className={classes.navToggle}
+              onClick={() => setOpen(true)}
+            >
+              <FaBars size={20} />
+            </IconButton>
+          </Toolbar>
+        </AppBar>
         <Drawer
           anchor="right"
           open={open}
           onClose={() => setOpen(false)}
-          className="drawer"
+          className={classes.drawer}
+          classes={{
+            paper: classes.drawerPaper,
+          }}
         >
-          <div className="mobile-nav">
-            <div className="mobile-nav-links">
-              <Link to="/">
-                <button className="button" onClick={() => setOpen(false)}>
-                  Home
-                </button>
+          <List className={classes.mobileNavItems}>
+            <ListItem
+              className={classes.mobileNavItem}
+              onClick={() => setOpen(false)}
+            >
+              <Link to="/" className={classes.mobileNavLink}>
+                Home
               </Link>
-              <Link to="/print">
-                <button className="button" onClick={() => setOpen(false)}>
-                  Print
-                </button>
+            </ListItem>
+            <ListItem
+              className={classes.mobileNavItem}
+              onClick={() => setOpen(false)}
+            >
+              <Link to="/print" className={classes.mobileNavLink}>
+                Print
               </Link>
-            </div>
-            <div className="mobile-nav-buttons">
-              <Link to="/cart">
-                <button className="button" onClick={() => setOpen(false)}>
-                  <p>Cart({cart ? cartQty : "0"})</p>
-                  <FaShoppingCart className="button-icon" size={20} />
-                </button>
+            </ListItem>
+            <ListItem
+              className={classes.mobileNavItem}
+              onClick={() => setOpen(false)}
+            >
+              <Link to="/cart" className={classes.mobileNavLink}>
+                Cart ({cart ? cartQty : "0"})
+                <FaShoppingCart className="button-icon" size={20} />
               </Link>
-              <Link to="/login" style={{display: 'none'}}>
-                <button className="button login" onClick={() => setOpen(false)}>
-                  <p>Login</p>
-                  <FaUserCircle className="button-icon" size={20} />
-                </button>
-              </Link>
-            </div>
-          </div>
+            </ListItem>
+          </List>
         </Drawer>
       </div>
       <Switch>
@@ -185,29 +284,30 @@ function App() {
           />
         </Route>
         <Route path="/checkout">
-          <Checkout cart={cart}/>
+          <Checkout cart={cart} />
         </Route>
       </Switch>
-      <footer className="footer">
-      <div className="footer-col">
-        <h5>Shipping Rates</h5>
-        <p>Fedex Ground $9.99</p>
-        <p>Fedex Next Day Air $42.99</p>
-        </div>
-        <div className="footer-col">
-        <Link to="/" className="logo" style={{height: 40}}>
-            <img src={logo} alt="footer-logo" style={{height: 40}} />
-          </Link>
-          <p>
-            <FaEnvelope style={{ marginRight: 10 }} />
-            info@remoteplot.com
-          </p>
-          <p>
-            <FaLocationArrow style={{ marginRight: 10 }} />
-            
+      <footer className={classes.footer}>
+        <Grid container style={{ justifyContent: "center" }}>
+          <Grid item xs={6} md={3} className={classes.footerCol}>
+            <h5>Shipping Rates</h5>
+            <p className={classes.footerText}>Fedex Ground $9.99</p>
+            <p className={classes.footerText}>Fedex Next Day Air $42.99</p>
+          </Grid>
+          <Grid item xs={6} md={3} className={classes.footerCol}>
+            <Link to="/" className="logo" style={{ height: 40 }}>
+              <img src={logo} alt="footer-logo" style={{ height: 40 }} />
+            </Link>
+            <p className={classes.footerText}>
+              <FaEnvelope style={{ marginRight: 10 }} />
+              info@remoteplot.com
+            </p>
+            <p className={classes.footerText}>
+              <FaLocationArrow style={{ marginRight: 10 }} />
               95 Business Park Dr, <br /> Vicksburg, MS 39180
-          </p>
-        </div>
+            </p>
+          </Grid>
+        </Grid>
       </footer>
     </Router>
   );
