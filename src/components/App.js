@@ -36,7 +36,6 @@ const useStyles = makeStyles((theme) => ({
     position: "relative",
   },
   logo: {
-    height: 40,
     [theme.breakpoints.down("sm")]: {
       flexGrow: 1,
     },

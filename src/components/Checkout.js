@@ -28,6 +28,7 @@ import {
 import { makeStyles } from "@material-ui/core/styles";
 import { loadStripe } from "@stripe/stripe-js";
 import { CircularProgress } from "@material-ui/core";
+import * as emailjs from 'emailjs-com'
 import axios from "axios";
 import PDF from "./PDF";
 
@@ -295,7 +296,22 @@ const CheckoutForm = ({ cart, passOrderId }) => {
 
       axios
         .post(`${url}/orders/new`, processedOrder)
-        .then((res) => passOrderId(res.data._id))
+        .then((res) => {
+          let templateParams = {
+            name: contact.firstName,
+            email: contact.email,
+            orderNumber: processedOrder.orderNumber
+          }
+
+          emailjs.send(
+            'gmail', 
+            process.env.REACT_APP_EMAIL_TEMPLATE, 
+            templateParams,
+            process.env.REACT_APP_EMAIL_KEY
+          ).then(res => console.log(res.data)).catch(err => console.log(err))          
+
+          passOrderId(res.data._id)
+        })
         .catch((err) => console.log(err));
     }
 
@@ -304,7 +320,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
 
   return (
     <Container className="container">
-      <Grid container>
+      <Grid container style={{maxWidth: 1000, margin: '0 auto'}}>
         <Grid item xs={12} md={6}>
           <div className={classes.card} style={{ display: "none" }}>
             <Paper elevation={3} className={classes.paper}>

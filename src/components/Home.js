@@ -8,6 +8,8 @@ import PriceTable from "./PriceTable";
 
 const useStyles = makeStyles((theme) => ({
   subContainer: {
+    maxWidth: 1200,
+    margin: '0 auto', 
     justifyContent: "center",
     padding: theme.spacing(2),
   },

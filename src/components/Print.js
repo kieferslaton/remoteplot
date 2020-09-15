@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { storage } from "../firebase/firebase";
 import {
-  Alert,
   Button,
   Checkbox,
   Container,
