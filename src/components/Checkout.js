@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Fragment } from "react";
-import { FaPlusCircle } from "react-icons/fa";
+import { FaKeycdn, FaPlusCircle } from "react-icons/fa";
 import {
   Elements,
   CardElement,
@@ -52,6 +52,11 @@ const useStyles = makeStyles((theme) => ({
   button: {
     margin: theme.spacing(2),
   },
+  cardElement: {
+    border: '1px solid #d3d3d3', 
+    padding: 10,
+    borderRadius: 3
+  }
 }));
 
 require("dotenv").config();
@@ -73,6 +78,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
     lastName: "",
     email: "",
     tel: "",
+    errors: []
   });
   const [multiAddress, setMultiAddress] = useState(false);
   const [ship, setShip] = useState([
@@ -82,6 +88,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
       city: "",
       state: "",
       zip: "",
+      errors: [],
       items: [],
       shipMenuItem: {
         name: "ground",
@@ -89,6 +96,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
       },
     },
   ]);
+  const [globalErrors, setGlobalErrors] = useState(false)
   const [paymentProcessing, setPaymentProcessing] = useState(false);
 
   useEffect(() => {
@@ -165,7 +173,10 @@ const CheckoutForm = ({ cart, passOrderId }) => {
       {
         street1: "",
         street2: "",
+        city: "", 
+        state: "",
         zip: "",
+        errors: [], 
         items: [],
         shipMenuItem: {
           name: "ground",
@@ -175,7 +186,58 @@ const CheckoutForm = ({ cart, passOrderId }) => {
     ]);
   };
 
+  const errorCheck = () => {
+    let errors = []
+    let errorFields = {
+      firstName : contact.firstName, 
+      lastName: contact.lastName, 
+      email: contact.email
+    }
+
+    let contactErrors = contact.errors
+
+    Object.keys(errorFields).forEach(key => {
+      const name = key
+      const value = errorFields[key]
+      if(value === "") {
+        contactErrors.push(name)
+        errors.push(name)
+      }
+    })
+
+    setContact({...contact, errors: contactErrors})
+
+    let shipClone = [...ship]
+
+    shipClone.forEach((addr, index) => {
+      let errorFields = {
+        street1: addr.street1, 
+        city: addr.city, 
+        state: addr.state, 
+        zip: addr.zip
+      }
+
+      Object.keys(errorFields).forEach(key => {
+        const name = key
+        const value = errorFields[key]
+        if(value === "") {
+          addr.errors.push(name)
+          errors.push(name+index)
+        }
+      })
+    })
+
+    setShip(shipClone)
+    return errors
+  }
+
   const handlePay = async () => {
+    let errors = errorCheck()
+    if(errors.length > 0){
+      setGlobalErrors(true)
+      return
+    }
+
     if (!stripe || !elements) {
       return;
     }
@@ -192,6 +254,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
       },
     };
 
+    setGlobalErrors(false);
     setPaymentProcessing(true);
 
     const { data: clientSecret } = await axios.post(`${url}/stripe/`, {
@@ -259,6 +322,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                   <TextField
                     type="text"
                     name="firstName"
+                    error={!contact.firstName.length && contact.errors.includes("firstName")}
                     value={contact.firstName}
                     onChange={handleContactChange}
                     label="First Name"
@@ -269,6 +333,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                   <TextField
                     type="text"
                     name="lastName"
+                    error={!contact.lastName.length && contact.errors.includes("lastName")}
                     value={contact.lastName}
                     onChange={handleContactChange}
                     label="Last Name"
@@ -281,6 +346,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                   <TextField
                     type="email"
                     name="email"
+                    error={!contact.email.length && contact.errors.includes("email")}
                     value={contact.email}
                     onChange={handleContactChange}
                     label="Email"
@@ -334,6 +400,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                       <TextField
                         type="text"
                         label="Street Address"
+                        error={!ship[index].street1.length && ship[index].errors.includes("street1")}
                         fullWidth
                         name={`${index} street1`}
                         value={addr.street1}
@@ -358,6 +425,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                       <TextField
                         type="text"
                         label="City"
+                        error={!ship[index].city.length && ship[index].errors.includes("city")}
                         name={`${index} city`}
                         value={addr.city}
                         onChange={handleShipChange}
@@ -368,6 +436,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                       <TextField
                         type="text"
                         label="State"
+                        error={!ship[index].state.length && ship[index].errors.includes("state")}
                         name={`${index} state`}
                         value={addr.state}
                         onChange={handleShipChange}
@@ -380,6 +449,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                       <TextField
                         type="string"
                         label="ZIP Code"
+                        error={!ship[index].zip.length && ship[index].errors.includes("zip")}
                         fullWidth
                         name={`${index} zip`}
                         value={addr.zip}
@@ -499,6 +569,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
             <Paper elevation={3} className={classes.paper}>
               <h5 style={{ marginBottom: 10 }}>Payment</h5>
               <CardElement
+                className={classes.cardElement}
                 MenuItems={{
                   style: {
                     base: {
@@ -523,6 +594,10 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                   `Pay $${cartTotal.toFixed(2)}`
                 )}
               </Button>
+              
+              </Grid>
+              <Grid container className={classes.row}>
+              <small style={{color: 'red', display: globalErrors ? "" : "none"}}>One or more required fields is missing.</small>
               </Grid>
             </Paper>
           </div>
@@ -612,11 +687,12 @@ const SuccessForm = ({ orderId }) => {
 
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC);
 
-const Checkout = ({ cart }) => {
+const Checkout = ({ cart, deleteCart }) => {
   const [orderId, setOrderId] = useState(null);
 
   const passOrderId = (id) => {
     setOrderId(id);
+    deleteCart()
   };
 
   return (

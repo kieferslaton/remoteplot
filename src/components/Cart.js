@@ -159,7 +159,7 @@ const Cart = ({
                 </TableBody>
               </Table>
             )}
-            <Grid container className={classes.row}>
+            <Grid container className={classes.row} style={{display: cart.length === 0 ? 'none' : ''}}>
             <Link to="/checkout">
               <Button
                 variant="outlined"

@@ -139,6 +139,11 @@ function App() {
     setCart((prevCart) => [...prevCart, item]);
   };
 
+  const deleteCart = () => {
+    setCart([])
+    localStorage.removeItem('cart')
+  }
+
   const removeItemFromCart = (item) => {
     if (cart.length === 1) {
       setCart([]);
@@ -284,7 +289,7 @@ function App() {
           />
         </Route>
         <Route path="/checkout">
-          <Checkout cart={cart} />
+          <Checkout cart={cart} deleteCart={deleteCart}/>
         </Route>
       </Switch>
       <footer className={classes.footer}>

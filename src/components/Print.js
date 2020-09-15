@@ -1,19 +1,24 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { storage } from "../firebase/firebase";
 import {
+  Alert,
   Button,
   Checkbox,
   Container,
   FormControlLabel,
   Grid,
+  IconButton,
   Paper,
   Radio,
+  Snackbar,
   TextField,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 
 import PDF from "./PDF";
 import PriceTable from "./PriceTable";
+import useWindowDimensions from "./Resize";
+import { FaRegTimesCircle } from "react-icons/fa";
 
 const useStyles = makeStyles((theme) => ({
   row: {
@@ -37,11 +42,12 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(2),
   },
   button: {
-    margin: theme.spacing(2)
-  }
+    margin: theme.spacing(2),
+  }, 
 }));
 
 const Print = ({ updateCart }) => {
+  const { width } = useWindowDimensions();
   const initOptions = [
     {
       height: 8.5,
@@ -63,24 +69,24 @@ const Print = ({ updateCart }) => {
       ],
     },
     {
-      height: 8.5,
+      height: 8.5, 
       width: 14,
-      qty: 0,
-      size: '8.5"x14"',
-      colorOption: "B&W",
+      qty: 0, 
+      size: "Standard Legal", 
+      colorOption: "B&W", 
       bgOptions: [
         {
-          name: "No Image Background",
-          price: [0.15, 0.1],
+          name: "No Image Background", 
+          price: [0.2, 0.15], 
           selected: true,
-        },
+        }, 
         {
-          name: "Image Background",
-          price: [1.5, 1.25],
-          selected: false,
-        },
-      ],
-    },
+          name: "Image Background", 
+          price: [1.5, 1.25], 
+          selected: false
+        }
+      ]
+    }, 
     {
       height: 11,
       width: 17,
@@ -161,8 +167,44 @@ const Print = ({ updateCart }) => {
   const classes = useStyles();
   const [fileUrl, setFileUrl] = useState(null);
   const [fileError, setFileError] = useState(false);
+  const [fileDims, setFileDims] = useState(null);
   const [numPages, setNumPages] = useState(1);
   const [printOptions, setPrintOptions] = useState(initOptions);
+  const [snackOpen, setSnackOpen] = useState(false);
+
+  useEffect(() => {
+    if (fileDims) {
+      let options = [...printOptions];
+      let filteredOptions = options.filter(
+        (option) =>
+          (option.height === fileDims.height ||
+            option.width === fileDims.height) &&
+          (option.width === fileDims.width || option.height === fileDims.width)
+      );
+      if (filteredOptions.length === 0) {
+        filteredOptions.push({
+          height: fileDims.height,
+          width: fileDims.width,
+          qty: 0,
+          size: "Custom",
+          colorOption: "B&W",
+          bgOptions: [
+            {
+              name: "No Image Background",
+              price: [5, 4],
+              selected: true,
+            },
+            {
+              name: "Image Background",
+              price: [8, 7],
+              selected: false,
+            },
+          ],
+        });
+      }
+      setPrintOptions(filteredOptions);
+    }
+  }, [fileDims]);
 
   const handleImageUpload = (e) => {
     let file = e.target.files[0];
@@ -182,7 +224,6 @@ const Print = ({ updateCart }) => {
           .getDownloadURL()
           .then((fireBaseUrl) => {
             setFileUrl(fireBaseUrl);
-            console.log(fileUrl);
           });
       }
     );
@@ -190,6 +231,14 @@ const Print = ({ updateCart }) => {
 
   const updatePages = (pages) => {
     setNumPages(pages);
+  };
+
+  const updateDims = (dims) => {
+    console.log(dims);
+    setFileDims({
+      height: dims.height / 72,
+      width: dims.width / 72,
+    });
   };
 
   const handleQtyChange = (e) => {
@@ -251,11 +300,12 @@ const Print = ({ updateCart }) => {
 
     setFileUrl(null);
     setPrintOptions(initOptions);
+    setSnackOpen(true);
   };
 
   return (
     <Container className="container">
-      <Grid container className={classes.row}>
+      <Grid container spacing={3} className={classes.row}>
         <Grid item xs={12} lg={7}>
           <Grid container className={classes.row}>
             <Grid item xs={12} className={classes.card}>
@@ -269,14 +319,15 @@ const Print = ({ updateCart }) => {
                   onChange={handleImageUpload}
                   style={{ maxWidth: 220 }}
                 />
-                <div style={{ overflow: "hidden" }}>
+                <div style={{ overflow: "hidden", marginTop: 20 }}>
                   {fileUrl ? (
                     <>
                       <PDF
                         style={{ border: "1px solid #d3d3d3" }}
                         url={fileUrl}
-                        width={350}
+                        width={width > 600 ? 350 : width * 0.7}
                         updatePages={updatePages}
+                        updateDims={updateDims}
                       />
                       <p style={{ textAlign: "center", fontSize: "0.8em" }}>
                         Pages: {numPages}
@@ -397,11 +448,17 @@ const Print = ({ updateCart }) => {
           </Grid>
           <div style={{ marginBottom: 40 }}>
             <Grid container className={classes.row}>
-              <Button variant="outlined" color="primary" onClick={() => handleCartAdd()} className={classes.button}>
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={() => handleCartAdd()}
+                className={classes.button}
+              >
                 Add to Cart
               </Button>
             </Grid>
-            <Grid container
+            <Grid
+              container
               className={classes.row}
               style={{
                 display: fileError ? "block" : "none",
@@ -418,6 +475,18 @@ const Print = ({ updateCart }) => {
           <PriceTable />
         </Grid>
       </Grid>
+      <Snackbar
+        className={classes.snack}
+        open={snackOpen}
+        autoHideDuration={5000}
+        onClose={() => setSnackOpen(false)}
+        message="Item Added to Cart"
+        action={
+          <IconButton size="small" color="inherit" onClick={() => setSnackOpen(false)}>
+            <FaRegTimesCircle />
+          </IconButton>
+        }
+      />
     </Container>
   );
 };

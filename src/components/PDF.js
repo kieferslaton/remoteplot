@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Document, Page } from 'react-pdf'
 
-const PDF = ({ width, url, updatePages}) => {
+const PDF = ({ width, url, updatePages, updateDims}) => {
     const [contHeight, setContHeight] = useState(150)
 
     return(
@@ -11,6 +11,10 @@ const PDF = ({ width, url, updatePages}) => {
             pdf.getPage(1).then(page => {
                 let viewport = page.getViewport({scale: 1})
                 setContHeight(width * viewport.height / viewport.width)
+                if(updateDims !== undefined){updateDims({
+                    height: viewport.height,
+                    width: viewport.width
+                })}
             })
         }}>
             <Page pageNumber={1} width={width}/>
