@@ -57,12 +57,12 @@ const Print = ({ updateCart }) => {
       bgOptions: [
         {
           name: "No Image Background",
-          price: [0.12, 0.08],
+          price: [0.64, 1.02],
           selected: true,
         },
         {
           name: "Image Background",
-          price: [1.25, 1],
+          price: 2.05, 
           selected: false,
         },
       ],
@@ -76,12 +76,12 @@ const Print = ({ updateCart }) => {
       bgOptions: [
         {
           name: "No Image Background", 
-          price: [0.2, 0.15], 
+          price: [0.7, 1.04], 
           selected: true,
         }, 
         {
           name: "Image Background", 
-          price: [1.5, 1.25], 
+          price: 2.25,  
           selected: false
         }
       ]
@@ -95,12 +95,12 @@ const Print = ({ updateCart }) => {
       bgOptions: [
         {
           name: "No Image Background",
-          price: [0.25, 0.2],
+          price: [0.8, 3.03],
           selected: true,
         },
         {
           name: "Image Background",
-          price: [2.25, 1.75],
+          price: 5.25,
           selected: false,
         },
       ],
@@ -114,12 +114,12 @@ const Print = ({ updateCart }) => {
       bgOptions: [
         {
           name: "No Image Background",
-          price: [1.55, 1],
+          price: [1.75, 4.74],
           selected: true,
         },
         {
           name: "Image Background",
-          price: [3.55, 2.75],
+          price: 7.5,
           selected: false,
         },
       ],
@@ -133,12 +133,12 @@ const Print = ({ updateCart }) => {
       bgOptions: [
         {
           name: "No Image Background",
-          price: [2.0, 1.5],
+          price: [3.64, 5.94],
           selected: true,
         },
         {
           name: "Image Background",
-          price: [4.5, 3.5],
+          price: 10.20,
           selected: false,
         },
       ],
@@ -152,12 +152,12 @@ const Print = ({ updateCart }) => {
       bgOptions: [
         {
           name: "No Image Background",
-          price: [3.5, 3],
+          price: [7.34, 11.94],
           selected: true,
         },
         {
           name: "Image Background",
-          price: [8.5, 7.5],
+          price: 21.15,
           selected: false,
         },
       ],
@@ -168,12 +168,12 @@ const Print = ({ updateCart }) => {
   const [fileError, setFileError] = useState(false);
   const [fileDims, setFileDims] = useState(null);
   const [numPages, setNumPages] = useState(1);
-  const [printOptions, setPrintOptions] = useState(initOptions);
+  const [printOptions, setPrintOptions] = useState([]);
   const [snackOpen, setSnackOpen] = useState(false);
 
   useEffect(() => {
     if (fileDims) {
-      let options = [...printOptions];
+      let options = initOptions;
       let filteredOptions = options.filter(
         (option) =>
           (option.height === fileDims.height ||
@@ -195,7 +195,7 @@ const Print = ({ updateCart }) => {
             },
             {
               name: "Image Background",
-              price: [8, 7],
+              price: 8,
               selected: false,
             },
           ],
@@ -284,12 +284,10 @@ const Print = ({ updateCart }) => {
         price:
           numPages *
           (option.bgOptions[0].selected
-            ? numPages < 10
+            ? option.colorOption === "B&W"
               ? option.bgOptions[0].price[0]
               : option.bgOptions[0].price[1]
-            : numPages < 10
-            ? option.bgOptions[1].price[0]
-            : option.bgOptions[1].price[1]),
+            : option.bgOptions[1].price),
         qty: option.qty,
         url: fileUrl,
         added: Date.now(),
@@ -298,7 +296,7 @@ const Print = ({ updateCart }) => {
     });
 
     setFileUrl(null);
-    setPrintOptions(initOptions);
+    setPrintOptions([]);
     setSnackOpen(true);
   };
 
@@ -422,23 +420,17 @@ const Print = ({ updateCart }) => {
                     {(
                       numPages *
                       (printOptions[index].bgOptions[0].selected
-                        ? numPages < 10
+                        ? printOptions[index].colorOption === "B&W"
                           ? printOptions[index].bgOptions[0].price[0]
                           : printOptions[index].bgOptions[0].price[1]
-                        : numPages < 10
-                        ? printOptions[index].bgOptions[1].price[0]
-                        : printOptions[index].bgOptions[1].price[1])
+                        : printOptions[index].bgOptions[1].price)
                     ).toFixed(2)}
                     {"  "}($
                     {printOptions[index].bgOptions[0].selected
-                      ? numPages < 10
+                      ? printOptions[index].colorOption === "B&W"
                         ? printOptions[index].bgOptions[0].price[0].toFixed(2)
                         : printOptions[index].bgOptions[0].price[1].toFixed(2)
-                      : numPages < 10
-                      ? printOptions[index].bgOptions[1].price[0].toFixed(2)
-                      : printOptions[index].bgOptions[1].price[1].toFixed(
-                          2
-                        )}{" "}
+                      : printOptions[index].bgOptions[1].price.toFixed(2)}{" "}
                     per Page)
                   </span>
                 </Paper>

@@ -79,6 +79,11 @@ const CheckoutForm = ({ cart, passOrderId }) => {
     lastName: "",
     email: "",
     tel: "",
+    street1: "", 
+    street2: "", 
+    city: "", 
+    state: "", 
+    zip: "", 
     errors: []
   });
   const [multiAddress, setMultiAddress] = useState(false);
@@ -192,7 +197,11 @@ const CheckoutForm = ({ cart, passOrderId }) => {
     let errorFields = {
       firstName : contact.firstName, 
       lastName: contact.lastName, 
-      email: contact.email
+      email: contact.email, 
+      street1: contact.street1, 
+      city: contact.city, 
+      state: contact.state, 
+      zip: contact.zip
     }
 
     let contactErrors = contact.errors
@@ -247,11 +256,11 @@ const CheckoutForm = ({ cart, passOrderId }) => {
       name: contact.firstName + " " + contact.lastName,
       email: contact.email,
       address: {
-        city: ship[0].city,
-        line1: ship[0].street1,
-        line2: ship[0].street2,
-        state: ship[0].state,
-        postal_code: ship[0].zip,
+        city: contact.city,
+        line1: contact.street1,
+        line2: contact.street2,
+        state: contact.state,
+        postal_code: contact.zip,
       },
     };
 
@@ -378,6 +387,75 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                     value={contact.tel}
                     onChange={handleContactChange}
                     label="Phone"
+                    fullWidth
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+          </div>
+          <div className={classes.card}>
+            <Paper elevation={3} className={classes.paper}>
+              <Grid container>
+                <h5>Billing/Return Address</h5>
+              </Grid>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <TextField
+                    type="text"
+                    name="street1"
+                    error={!contact.street1.length && contact.errors.includes("street1")}
+                    value={contact.street1}
+                    onChange={handleContactChange}
+                    label="Street Address"
+                    fullWidth
+                  />
+                </Grid>
+              </Grid>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <TextField
+                    type="text"
+                    name="street2"
+                    value={contact.street2}
+                    onChange={handleContactChange}
+                    label="Apt, Suite, etc."
+                    fullWidth
+                  />
+                </Grid>
+              </Grid>
+              <Grid container spacing={3}>
+                <Grid item xs={6}>
+                  <TextField
+                    type="text"
+                    name="city"
+                    error={!contact.city.length && contact.errors.includes("city")}
+                    value={contact.city}
+                    onChange={handleContactChange}
+                    label="City"
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    type="text"
+                    name="state"
+                    error={!contact.state.length && contact.errors.includes("state")}
+                    value={contact.state}
+                    onChange={handleContactChange}
+                    label="State"
+                    fullWidth
+                  />
+                </Grid>
+              </Grid>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <TextField
+                    type="text"
+                    name="zip"
+                    error={!contact.zip.length && contact.errors.includes("zip")}
+                    value={contact.zip}
+                    onChange={handleContactChange}
+                    label="ZIP Code"
                     fullWidth
                   />
                 </Grid>
