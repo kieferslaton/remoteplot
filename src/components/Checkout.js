@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Fragment } from "react";
-import { FaKeycdn, FaPlusCircle } from "react-icons/fa";
+import { FaPlusCircle } from "react-icons/fa";
 import {
   Elements,
   CardElement,
@@ -23,12 +23,12 @@ import {
   FormControl,
   RadioGroup,
   Radio,
-  Divider
+  Divider,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { loadStripe } from "@stripe/stripe-js";
 import { CircularProgress } from "@material-ui/core";
-import * as emailjs from 'emailjs-com'
+import * as emailjs from "emailjs-com";
 import axios from "axios";
 import PDF from "./PDF";
 
@@ -54,10 +54,10 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(2),
   },
   cardElement: {
-    border: '1px solid #d3d3d3', 
+    border: "1px solid #d3d3d3",
     padding: 10,
-    borderRadius: 3
-  }
+    borderRadius: 3,
+  },
 }));
 
 require("dotenv").config();
@@ -70,6 +70,12 @@ const CheckoutForm = ({ cart, passOrderId }) => {
   const stripe = useStripe();
   const elements = useElements();
 
+  const shippingOptions = [
+    "fedex_express_saver",
+    "fedex_2day",
+    "fedex_standard_overnight",
+  ];
+
   const [localCart, setLocalCart] = useState([]);
   const [cartSubtotal, setCartSubtotal] = useState(0);
   const [shipTotal, setShipTotal] = useState(0);
@@ -79,16 +85,18 @@ const CheckoutForm = ({ cart, passOrderId }) => {
     lastName: "",
     email: "",
     tel: "",
-    street1: "", 
-    street2: "", 
-    city: "", 
-    state: "", 
-    zip: "", 
-    errors: []
+    street1: "",
+    street2: "",
+    city: "",
+    state: "",
+    zip: "",
+    errors: [],
   });
   const [multiAddress, setMultiAddress] = useState(false);
   const [ship, setShip] = useState([
     {
+      firstName: "",
+      lastName: "",
       street1: "",
       street2: "",
       city: "",
@@ -96,14 +104,14 @@ const CheckoutForm = ({ cart, passOrderId }) => {
       zip: "",
       errors: [],
       items: [],
-      shipMenuItem: {
-        name: "ground",
-        price: 9.99,
-      },
+      shipping: null,
+      shippingError: false,
+      calculating: false,
     },
   ]);
-  const [globalErrors, setGlobalErrors] = useState(false)
+  const [globalErrors, setGlobalErrors] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
+  const [paymentError, setPaymentError] = useState(null)
 
   useEffect(() => {
     let organizedCart = [];
@@ -137,7 +145,10 @@ const CheckoutForm = ({ cart, passOrderId }) => {
     let shipTotal = 0;
 
     ship.forEach((addr) => {
-      shipTotal += addr.shipMenuItem.price;
+      if(addr.shipping){
+      const shipPrice = addr.shipping.find(op => op.selected === true).price
+      shipTotal += shipPrice;
+      }
     });
 
     let total = 0;
@@ -163,13 +174,98 @@ const CheckoutForm = ({ cart, passOrderId }) => {
   };
 
   const handleShipSelected = (e) => {
-    const { name, value } = e.target;
-    let shipClone = [...ship];
-    shipClone[name].shipMenuItem = {
-      name: value,
-      price: value === "ground" ? 9.99 : 42.99,
+    const { name, value } = e.target
+    const shipClone = [...ship]
+    shipClone[name].shipping.forEach(op => {
+      if (op.service_code === value){
+        op.selected = true
+      } else {
+        op.selected = false
+      }
+    })
+    setShip(shipClone)
+  };
+
+  const calculateShipping = (index) => {
+    let errors = shippingErrorCheck(index);
+    if (errors.length > 0) {
+      let shipClone = [...ship];
+      shipClone[index].shippingError = true;
+      setShip(shipClone);
+      return;
+    }
+
+    const shipClone = [...ship]
+    shipClone[index].calculating = true
+    setShip(shipClone)
+
+    const headers = {
+      'api-key': process.env.REACT_APP_SHIPENGINE_KEY, 
+      'Content-Type': 'application/json'
+    }
+
+    const config = {
+      headers,
+      baseUrl:  'https://api.shipengine.com',
+      validateStatus(){
+      return true;
+      }
     };
-    setShip(shipClone);
+
+    const data = {
+      "rate_options": {
+        "carrier_ids": [
+          process.env.REACT_APP_CARRIER
+        ]
+      },
+      "shipment": {
+        "validate_address": "validate_and_clean",
+        "ship_to": {
+          "name": ship[index].firstName+" "+ship[index].lastName, 
+          "address_line1": ship[index].street1,
+          "address_line2": ship[index].street2,
+          "city_locality": ship[index].city,
+          "state_province": ship[index].state,
+          "postal_code": ship[index].zip,
+          "country_code": "US"
+        },
+        "ship_from": {
+          "name": contact.firstName+" "+contact.lastName,
+          "phone": contact.tel,
+          "address_line1": contact.street1,
+          "address_line2": contact.street2,
+          "city_locality": contact.city,
+          "state_province": contact.state,
+          "postal_code": contact.zip,
+          "country_code": "US",
+        },
+        "packages": [
+          {
+            "weight": {
+              "value": 16.0,
+              "unit": "ounce"
+            }
+          }
+        ]
+      }
+    }
+
+    axios.post("https://cors-anywhere.herokuapp.com/https://api.shipengine.com/v1/rates", data, config).then(res => {
+      let rates = res.data.rate_response.rates.filter(rate => shippingOptions.includes(rate.service_code))
+      console.log(rates)
+      let shipClone=[...ship]
+      shipClone[index].shipping = []
+      rates.forEach(rate => {
+        shipClone[index].shipping.push({
+          service_code: rate.service_code, 
+          service_type: rate.service_type, 
+          price: rate.shipping_amount.amount,
+          selected: rate.service_code === shippingOptions[0]
+        })
+      })
+      shipClone[index].calculating=false
+      setShip(shipClone)
+    }).catch(err => console.log(err))
   };
 
   const addAddress = (e) => {
@@ -177,75 +273,127 @@ const CheckoutForm = ({ cart, passOrderId }) => {
     setShip([
       ...ship,
       {
+        firstName:"",
+        lastName:"",
         street1: "",
         street2: "",
-        city: "", 
+        city: "",
         state: "",
         zip: "",
-        errors: [], 
+        errors: [],
         items: [],
-        shipMenuItem: {
-          name: "ground",
-          price: 9.99,
-        },
+        shipping: null,
+        shippingError: false,
+        calculating: false,
       },
     ]);
   };
 
-  const errorCheck = () => {
-    let errors = []
+  const shippingErrorCheck = (index) => {
+    let errors = [];
     let errorFields = {
-      firstName : contact.firstName, 
-      lastName: contact.lastName, 
-      email: contact.email, 
-      street1: contact.street1, 
-      city: contact.city, 
-      state: contact.state, 
-      zip: contact.zip
-    }
+      firstName: contact.firstName,
+      lastName: contact.lastName,
+      email: contact.email,
+      street1: contact.street1,
+      city: contact.city,
+      state: contact.state,
+      zip: contact.zip,
+    };
 
-    let contactErrors = contact.errors
+    let contactErrors = contact.errors;
 
-    Object.keys(errorFields).forEach(key => {
-      const name = key
-      const value = errorFields[key]
-      if(value === "") {
-        contactErrors.push(name)
-        errors.push(name)
+    Object.keys(errorFields).forEach((key) => {
+      const name = key;
+      const value = errorFields[key];
+      if (value === "") {
+        contactErrors.push(name);
+        errors.push(name);
       }
-    })
+    });
 
-    setContact({...contact, errors: contactErrors})
+    setContact({ ...contact, errors: contactErrors });
+
+    let shipErrorFields = {
+      firstName: ship[index].firstName,
+      lastName: ship[index].lastName,
+      street1: ship[index].street1,
+      city: ship[index].city,
+      state: ship[index].state,
+      zip: ship[index].zip,
+    }
 
     let shipClone = [...ship]
 
-    shipClone.forEach((addr, index) => {
-      let errorFields = {
-        street1: addr.street1, 
-        city: addr.city, 
-        state: addr.state, 
-        zip: addr.zip
+    Object.keys(shipErrorFields).forEach((key) => {
+      const name = key;
+      const value = errorFields[key];
+      if (value === "") {
+        shipClone[index].errors.push(name)
       }
-
-      Object.keys(errorFields).forEach(key => {
-        const name = key
-        const value = errorFields[key]
-        if(value === "") {
-          addr.errors.push(name)
-          errors.push(name+index)
-        }
-      })
     })
 
     setShip(shipClone)
+
     return errors
   }
 
+  const errorCheck = () => {
+    let errors = [];
+    let errorFields = {
+      firstName: contact.firstName,
+      lastName: contact.lastName,
+      email: contact.email,
+      street1: contact.street1,
+      city: contact.city,
+      state: contact.state,
+      zip: contact.zip,
+    };
+
+    let contactErrors = contact.errors;
+
+    Object.keys(errorFields).forEach((key) => {
+      const name = key;
+      const value = errorFields[key];
+      if (value === "") {
+        contactErrors.push(name);
+        errors.push(name);
+      }
+    });
+
+    setContact({ ...contact, errors: contactErrors });
+
+    let shipClone = [...ship];
+
+    shipClone.forEach((addr, index) => {
+      let errorFields = {
+        firstName: addr.firstName,
+        lastName: addr.lastName,
+        street1: addr.street1,
+        city: addr.city,
+        state: addr.state,
+        zip: addr.zip,
+      };
+
+      Object.keys(errorFields).forEach((key) => {
+        const name = key;
+        const value = errorFields[key];
+        if (value === "") {
+          addr.errors.push(name);
+          errors.push(name + index);
+        }
+      });
+    });
+
+    setShip(shipClone);
+    return errors;
+  };
+
   const handlePay = async () => {
-    let errors = errorCheck()
-    if(errors.length > 0){
-      setGlobalErrors(true)
-      return
+    let errors = errorCheck();
+    if (errors.length > 0) {
+      setGlobalErrors(true);
+      return;
     }
 
     if (!stripe || !elements) {
@@ -309,19 +457,25 @@ const CheckoutForm = ({ cart, passOrderId }) => {
           let templateParams = {
             name: contact.firstName,
             email: contact.email,
-            orderNumber: processedOrder.orderNumber
-          }
+            orderNumber: processedOrder.orderNumber,
+          };
 
-          emailjs.send(
-            'gmail', 
-            process.env.REACT_APP_EMAIL_TEMPLATE, 
-            templateParams,
-            process.env.REACT_APP_EMAIL_KEY
-          ).then(res => console.log(res.data)).catch(err => console.log(err))          
+          emailjs
+            .send(
+              "gmail",
+              process.env.REACT_APP_EMAIL_TEMPLATE,
+              templateParams,
+              process.env.REACT_APP_EMAIL_KEY
+            )
+            .then((res) => console.log(res.data))
+            .catch((err) => console.log(err));
 
-          passOrderId(res.data._id)
+          passOrderId(res.data._id);
         })
-        .catch((err) => console.log(err));
+        .catch((err) => {
+          setPaymentError(err.data)
+          setPaymentProcessing(false)
+        });
     }
 
     console.log(confirmed);
@@ -329,7 +483,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
 
   return (
     <Container className="container">
-      <Grid container style={{maxWidth: 1000, margin: '0 auto'}}>
+      <Grid container style={{ maxWidth: 1000, margin: "0 auto" }}>
         <Grid item xs={12} md={6}>
           <div className={classes.card} style={{ display: "none" }}>
             <Paper elevation={3} className={classes.paper}>
@@ -347,7 +501,10 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                   <TextField
                     type="text"
                     name="firstName"
-                    error={!contact.firstName.length && contact.errors.includes("firstName")}
+                    error={
+                      !contact.firstName.length &&
+                      contact.errors.includes("firstName")
+                    }
                     value={contact.firstName}
                     onChange={handleContactChange}
                     label="First Name"
@@ -358,7 +515,10 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                   <TextField
                     type="text"
                     name="lastName"
-                    error={!contact.lastName.length && contact.errors.includes("lastName")}
+                    error={
+                      !contact.lastName.length &&
+                      contact.errors.includes("lastName")
+                    }
                     value={contact.lastName}
                     onChange={handleContactChange}
                     label="Last Name"
@@ -371,7 +531,9 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                   <TextField
                     type="email"
                     name="email"
-                    error={!contact.email.length && contact.errors.includes("email")}
+                    error={
+                      !contact.email.length && contact.errors.includes("email")
+                    }
                     value={contact.email}
                     onChange={handleContactChange}
                     label="Email"
@@ -403,7 +565,10 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                   <TextField
                     type="text"
                     name="street1"
-                    error={!contact.street1.length && contact.errors.includes("street1")}
+                    error={
+                      !contact.street1.length &&
+                      contact.errors.includes("street1")
+                    }
                     value={contact.street1}
                     onChange={handleContactChange}
                     label="Street Address"
@@ -428,7 +593,9 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                   <TextField
                     type="text"
                     name="city"
-                    error={!contact.city.length && contact.errors.includes("city")}
+                    error={
+                      !contact.city.length && contact.errors.includes("city")
+                    }
                     value={contact.city}
                     onChange={handleContactChange}
                     label="City"
@@ -439,7 +606,9 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                   <TextField
                     type="text"
                     name="state"
-                    error={!contact.state.length && contact.errors.includes("state")}
+                    error={
+                      !contact.state.length && contact.errors.includes("state")
+                    }
                     value={contact.state}
                     onChange={handleContactChange}
                     label="State"
@@ -452,7 +621,9 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                   <TextField
                     type="text"
                     name="zip"
-                    error={!contact.zip.length && contact.errors.includes("zip")}
+                    error={
+                      !contact.zip.length && contact.errors.includes("zip")
+                    }
                     value={contact.zip}
                     onChange={handleContactChange}
                     label="ZIP Code"
@@ -490,11 +661,44 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                     <h3>Address {index + 1}</h3>
                   </Grid>
                   <Grid container spacing={3}>
+                    <Grid item xs={6}>
+                      <TextField
+                        type="text"
+                        label="First Name"
+                        error={
+                          !ship[index].firstName.length &&
+                          ship[index].errors.includes("firstName")
+                        }
+                        fullWidth
+                        name={`${index} firstName`}
+                        value={addr.firstName}
+                        onChange={handleShipChange}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        type="text"
+                        label="Last Name"
+                        error={
+                          !ship[index].lastName.length &&
+                          ship[index].errors.includes("lastName")
+                        }
+                        fullWidth
+                        name={`${index} lastName`}
+                        value={addr.lastName}
+                        onChange={handleShipChange}
+                      />
+                    </Grid>
+                  </Grid>
+                  <Grid container spacing={3}>
                     <Grid item xs={12}>
                       <TextField
                         type="text"
                         label="Street Address"
-                        error={!ship[index].street1.length && ship[index].errors.includes("street1")}
+                        error={
+                          !ship[index].street1.length &&
+                          ship[index].errors.includes("street1")
+                        }
                         fullWidth
                         name={`${index} street1`}
                         value={addr.street1}
@@ -519,7 +723,10 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                       <TextField
                         type="text"
                         label="City"
-                        error={!ship[index].city.length && ship[index].errors.includes("city")}
+                        error={
+                          !ship[index].city.length &&
+                          ship[index].errors.includes("city")
+                        }
                         name={`${index} city`}
                         value={addr.city}
                         onChange={handleShipChange}
@@ -530,7 +737,10 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                       <TextField
                         type="text"
                         label="State"
-                        error={!ship[index].state.length && ship[index].errors.includes("state")}
+                        error={
+                          !ship[index].state.length &&
+                          ship[index].errors.includes("state")
+                        }
                         name={`${index} state`}
                         value={addr.state}
                         onChange={handleShipChange}
@@ -543,7 +753,10 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                       <TextField
                         type="string"
                         label="ZIP Code"
-                        error={!ship[index].zip.length && ship[index].errors.includes("zip")}
+                        error={
+                          !ship[index].zip.length &&
+                          ship[index].errors.includes("zip")
+                        }
                         fullWidth
                         name={`${index} zip`}
                         value={addr.zip}
@@ -551,45 +764,70 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                       />
                     </Grid>
                   </Grid>
-                  <Grid container style={{ marginTop: 10 }} className={classes.row}>
+                  <Grid
+                    container
+                    style={{ marginTop: 10 }}
+                    className={classes.row}
+                  >
                     <h6>Shipping</h6>
-                    <Grid item xs={12} sm={10} md={8}>
-                    <RadioGroup>
-                      <FormControlLabel
-                        control={
-                          <Radio
-                            name={index}
-                            value="ground"
-                            onClick={handleShipSelected}
-                            checked={
-                              addr.shipMenuItem.name === "ground" ? true : false
-                            }
-                          />
-                        }
-                        label="Fedex 2-3 Day Ground $9.99"
-                      />
-                      <FormControlLabel
-                        control={
-                          <Radio
-                            name={index}
-                            value="next-day"
-                            onClick={handleShipSelected}
-                            checked={
-                              addr.shipMenuItem.name === "next-day"
-                                ? true
-                                : false
-                            }
-                          />
-                        }
-                        label="Fedex Next Day Air $42.99"
-                      />
-                    </RadioGroup>
+                    <Grid
+                      item
+                      xs={12}
+                      sm={10}
+                      md={8}
+                      style={{ display: "flex", justifyContent: "center" }}
+                    >
+                      {addr.shipping ? (
+                        <>
+                        <RadioGroup>
+                          {addr.shipping.map(op => (
+                            <FormControlLabel
+                              control={
+                                <Radio
+                                  checked={op.selected}
+                                  name={index}
+                                  value={op.service_code}
+                                  onClick={handleShipSelected}
+                                />
+                              }
+                              label={`${op.service_type} $${op.price}`}
+                            />
+                          ))}
+                          </RadioGroup>
+                        </>
+                      ) : (
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          onClick={() => calculateShipping(index)}
+                        >
+                          {ship[index].calculating ? (
+                    <CircularProgress size={20} style={{ color: "#c30017" }} />
+                  ) : (
+                    'Calculate Shipping'
+                  )}
+                        </Button>
+                      )}
+                    </Grid>
+                    <Grid container className={classes.row}>
+                      <small
+                        style={{
+                          color: "red",
+                          display: ship[index].shippingError ? "" : "none",
+                        }}
+                      >
+                        One or more required fields is missing.
+                      </small>
                     </Grid>
                   </Grid>
-                  <Divider style={{ display: multiAddress ? "" : "none", margin: 20 }}/>
+                  <Divider
+                    style={{ display: multiAddress ? "" : "none", margin: 20 }}
+                  />
                 </div>
               ))}
-              <Grid container className={classes.row}
+              <Grid
+                container
+                className={classes.row}
                 style={{ display: multiAddress ? "" : "none" }}
               >
                 <Button variant="outlined" color="primary" onClick={addAddress}>
@@ -673,25 +911,32 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                 }}
               />
               <Grid container className={classes.row}>
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={handlePay}
-                style={{
-                  margin: "20px auto",
-                  pointerEvents: paymentProcessing ? "none" : "",
-                }}
-              >
-                {paymentProcessing ? (
-                  <CircularProgress size={20} style={{ color: "#c30017" }} />
-                ) : (
-                  `Pay $${cartTotal.toFixed(2)}`
-                )}
-              </Button>
-              
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  onClick={handlePay}
+                  style={{
+                    margin: "20px auto",
+                    pointerEvents: paymentProcessing ? "none" : "",
+                  }}
+                >
+                  {paymentProcessing ? (
+                    <CircularProgress size={20} style={{ color: "#c30017" }} />
+                  ) : (
+                    `Pay $${cartTotal.toFixed(2)}`
+                  )}
+                </Button>
               </Grid>
               <Grid container className={classes.row}>
-              <small style={{color: 'red', display: globalErrors ? "" : "none"}}>One or more required fields is missing.</small>
+                <small
+                  style={{ color: "red", display: globalErrors ? "" : "none" }}
+                >
+                  One or more required fields is missing.
+                </small>
+                <small
+                  style={{color: 'red', display: paymentError ? "" : "none"}}>
+                    {paymentError}
+                  </small>
               </Grid>
             </Paper>
           </div>
@@ -702,7 +947,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
 };
 
 const SuccessForm = ({ orderId }) => {
-  const classes = useStyles()
+  const classes = useStyles();
   const [order, setOrder] = useState(null);
 
   useEffect(() => {
@@ -717,60 +962,64 @@ const SuccessForm = ({ orderId }) => {
       {order ? (
         <Container className="container">
           <Grid container className={classes.row}>
-          <Grid item xs={12} className={classes.card}>
-          <Paper className={classes.paper}>
-            <h3>Your Order is Complete.</h3>
-            <Table>
-              <TableBody>
-                <TableRow>
-                  <TableCell colSpan={4}>Order Number: #{order.orderNumber}</TableCell>
-                </TableRow>
-                {order.ship.map((addr) => (
-                  <>
+            <Grid item xs={12} className={classes.card}>
+              <Paper className={classes.paper}>
+                <h3>Your Order is Complete.</h3>
+                <Table>
+                  <TableBody>
                     <TableRow>
                       <TableCell colSpan={4}>
-                        Shipping To: <br />
-                        {addr.street1} {addr.street2}
-                        <br />
-                        {addr.city}, {addr.state} {addr.zip}
+                        Order Number: #{order.orderNumber}
                       </TableCell>
                     </TableRow>
-                    {addr.items.map((url) => (
+                    {order.ship.map((addr) => (
                       <>
                         <TableRow>
-                          <TableCell
-                            rowSpan={url.length + 1}
-                            style={{ borderRight: "1px solid #d3d3d3" }}
-                          >
-                            <PDF url={url[0].url} width={70} />
+                          <TableCell colSpan={4}>
+                            Shipping To: <br />
+                            {addr.firstName} {addr.lastName}
+                            <br />
+                            {addr.street1} {addr.street2}
+                            <br />
+                            {addr.city}, {addr.state} {addr.zip}
                           </TableCell>
-                          <TableCell>Type</TableCell>
-                          <TableCell>Qty</TableCell>
-                          <TableCell style={{ width: 50 }}>Price</TableCell>
                         </TableRow>
-                        <>
-                          {url.map((item) => (
-                            <TableRow key={item.name}>
-                              <TableCell style={{ fontSize: "0.8rem" }}>
-                                {item.name} {item.colorMenuItem}{" "}
-                                {item.bg ? "Background" : "No Background"}
+                        {addr.items.map((url) => (
+                          <>
+                            <TableRow>
+                              <TableCell
+                                rowSpan={url.length + 1}
+                                style={{ borderRight: "1px solid #d3d3d3" }}
+                              >
+                                <PDF url={url[0].url} width={70} />
                               </TableCell>
-                              <TableCell>{item.qty}</TableCell>
-                              <TableCell style={{ width: 50 }}>
-                                ${(item.price * item.qty).toFixed(2)}
-                              </TableCell>
+                              <TableCell>Type</TableCell>
+                              <TableCell>Qty</TableCell>
+                              <TableCell style={{ width: 50 }}>Price</TableCell>
                             </TableRow>
-                          ))}
-                        </>
+                            <>
+                              {url.map((item) => (
+                                <TableRow key={item.name}>
+                                  <TableCell style={{ fontSize: "0.8rem" }}>
+                                    {item.name} {item.colorMenuItem}{" "}
+                                    {item.bg ? "Background" : "No Background"}
+                                  </TableCell>
+                                  <TableCell>{item.qty}</TableCell>
+                                  <TableCell style={{ width: 50 }}>
+                                    ${(item.price * item.qty).toFixed(2)}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </>
+                          </>
+                        ))}
                       </>
                     ))}
-                  </>
-                ))}
-              </TableBody>
-            </Table>
-            </Paper>
+                  </TableBody>
+                </Table>
+              </Paper>
+            </Grid>
           </Grid>
-        </Grid>
         </Container>
       ) : (
         ""
@@ -786,7 +1035,7 @@ const Checkout = ({ cart, deleteCart }) => {
 
   const passOrderId = (id) => {
     setOrderId(id);
-    deleteCart()
+    deleteCart();
   };
 
   return (

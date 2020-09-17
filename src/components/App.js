@@ -26,6 +26,7 @@ import Home from "./Home";
 import Print from "./Print";
 import Cart from "./Cart";
 import Checkout from "./Checkout";
+import Admin from "./Admin";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -289,6 +290,9 @@ function App() {
         </Route>
         <Route path="/checkout">
           <Checkout cart={cart} deleteCart={deleteCart}/>
+        </Route>
+        <Route path="/admin">
+          <Admin />
         </Route>
       </Switch>
       <footer className={classes.footer}>
