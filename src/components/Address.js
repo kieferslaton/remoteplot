@@ -68,6 +68,7 @@ const Address = ({ addr, from, index, updateOrder }) => {
   const classes = useStyles();
   const [packaging, setPackaging] = useState();
   const [weight, setWeight] = useState(0);
+  const [weightError, setWeightError] = useState(false)
   const [shippingLabelUrl, setShippingLabelUrl] = useState(
     addr.labelUrl ? addr.labelUrl : null
   );
@@ -90,6 +91,14 @@ const Address = ({ addr, from, index, updateOrder }) => {
   };
 
   const orderShippingLabel = () => {
+
+    if(weight === 0){
+        setWeightError(true)
+        return
+    } else {
+        setWeightError(false)
+    }
+
     setShippingProcessing(true);
     const headers = {
       "api-key": process.env.REACT_APP_SHIPENGINE_KEY,
@@ -207,6 +216,7 @@ const Address = ({ addr, from, index, updateOrder }) => {
               >
                 <FormControl>
                   <Input
+                    error={weightError}
                     type="number"
                     value={weight}
                     onChange={handleWeightChange}
