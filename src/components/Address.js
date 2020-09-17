@@ -118,7 +118,7 @@ const Address = ({ addr, from, index, updateOrder }) => {
         },
         ship_from: {
           name: from.name,
-          phone: "888-888-8888",
+          phone: '888-888-8888',
           address_line1: from.address.line1,
           address_line2: from.address.line2,
           city_locality: from.address.city,

@@ -403,6 +403,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
     const billingDetails = {
       name: contact.firstName + " " + contact.lastName,
       email: contact.email,
+      phone: contact.tel,
       address: {
         city: contact.city,
         line1: contact.street1,
@@ -415,8 +416,11 @@ const CheckoutForm = ({ cart, passOrderId }) => {
     setGlobalErrors(false);
     setPaymentProcessing(true);
 
-    const { data: clientSecret } = await axios.post(`${url}/stripe/`, {
-      amount: cartTotal.toFixed(2) * 100,
+    let amount = Math.round(cartTotal*100)
+    console.log(amount)
+
+    let { data: clientSecret } = await axios.post(`${url}/stripe/`, {
+      amount
     });
 
     console.log(clientSecret);
