@@ -222,10 +222,11 @@ function App() {
                 <Link to="/cart">Cart ({cart ? cartQty : "0"})</Link>
                 <FaShoppingCart className="button-icon" size={20} />
               </Button>
-              <Button className={classes.navButton} style={{ display: "none" }}>
-                <p>Login</p>
+              <Link to="/admin">
+              <Button className={classes.navButton}>
                 <FaUserCircle className="button-icon" size={20} />
               </Button>
+              </Link>
             </div>
             <IconButton
               className={classes.navToggle}
