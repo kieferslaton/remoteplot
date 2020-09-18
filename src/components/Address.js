@@ -67,7 +67,7 @@ const Address = ({ addr, from, index, updateOrder }) => {
   const classes = useStyles();
   const [packaging, setPackaging] = useState();
   const [weight, setWeight] = useState(0);
-  const [weightError, setWeightError] = useState(false)
+  const [weightError, setWeightError] = useState(false);
   const [shippingLabelUrl, setShippingLabelUrl] = useState(
     addr.labelUrl ? addr.labelUrl : null
   );
@@ -90,12 +90,11 @@ const Address = ({ addr, from, index, updateOrder }) => {
   };
 
   const orderShippingLabel = () => {
-
-    if(weight === 0){
-        setWeightError(true)
-        return
+    if (weight === 0) {
+      setWeightError(true);
+      return;
     } else {
-        setWeightError(false)
+      setWeightError(false);
     }
 
     setShippingProcessing(true);
@@ -126,7 +125,7 @@ const Address = ({ addr, from, index, updateOrder }) => {
         },
         ship_from: {
           name: from.name,
-          phone: '888-888-8888',
+          phone: "888-888-8888",
           address_line1: from.address.line1,
           address_line2: from.address.line2,
           city_locality: from.address.city,
@@ -197,7 +196,7 @@ const Address = ({ addr, from, index, updateOrder }) => {
                 <FormControl style={{ minWidth: "90%" }}>
                   <InputLabel>Package Type</InputLabel>
                   <Select
-                    value={packaging ? packaging : ''}
+                    value={packaging ? packaging : ""}
                     onChange={(e) => setPackaging(e.target.value)}
                   >
                     {packageOptions.map((op) => (

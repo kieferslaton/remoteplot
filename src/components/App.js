@@ -42,8 +42,8 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   logoImg: {
-    maxHeight: "90%"
-  }, 
+    maxHeight: "90%",
+  },
   navLinks: {
     display: "flex",
     margin: theme.spacing(2),
@@ -143,9 +143,9 @@ function App() {
   };
 
   const deleteCart = () => {
-    setCart([])
-    localStorage.removeItem('cart')
-  }
+    setCart([]);
+    localStorage.removeItem("cart");
+  };
 
   const removeItemFromCart = (item) => {
     if (cart.length === 1) {
@@ -210,7 +210,7 @@ function App() {
         <AppBar position="static" className={classes.appBar}>
           <Toolbar>
             <Link to="/" className={classes.logo}>
-              <img src={logoRed} alt="logo" className={classes.logoImg}/>
+              <img src={logoRed} alt="logo" className={classes.logoImg} />
             </Link>
             <ul className={classes.navLinks}>
               <li className={classes.navLink}>
@@ -226,9 +226,9 @@ function App() {
                 <FaShoppingCart className="button-icon" size={20} />
               </Button>
               <Link to="/admin">
-              <Button className={classes.navButton}>
-                <FaUserCircle className="button-icon" size={20} />
-              </Button>
+                <Button className={classes.navButton}>
+                  <FaUserCircle className="button-icon" size={20} />
+                </Button>
               </Link>
             </div>
             <IconButton
@@ -293,7 +293,7 @@ function App() {
           />
         </Route>
         <Route path="/checkout">
-          <Checkout cart={cart} deleteCart={deleteCart}/>
+          <Checkout cart={cart} deleteCart={deleteCart} />
         </Route>
         <Route path="/admin">
           <Admin />
