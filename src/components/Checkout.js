@@ -15,12 +15,9 @@ import {
   Grid,
   Container,
   Button,
-  MenuItem,
   TextField,
   FormControlLabel,
   Checkbox,
-  Select,
-  FormControl,
   RadioGroup,
   Radio,
   Divider,
@@ -146,7 +143,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
 
     ship.forEach((addr) => {
       if(addr.shipping){
-      const shipPrice = addr.shipping.find(op => op.selected === true).price
+      const shipPrice = addr.shipping.find(op => op.selected === true).price !== undefined ? addr.shipping.find(op => op.selected === true).price : 0
       shipTotal += shipPrice;
       }
     });
@@ -176,7 +173,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
   const handleShipSelected = (e) => {
     const { name, value } = e.target
     const shipClone = [...ship]
-    shipClone[name].shipping.forEach(op => {
+    shipClone[parseInt(name)].shipping.forEach(op => {
       if (op.service_code === value){
         op.selected = true
       } else {
@@ -252,7 +249,6 @@ const CheckoutForm = ({ cart, passOrderId }) => {
 
     axios.post("https://cors-anywhere.herokuapp.com/https://api.shipengine.com/v1/rates", data, config).then(res => {
       let rates = res.data.rate_response.rates.filter(rate => shippingOptions.includes(rate.service_code))
-      console.log(rates)
       let shipClone=[...ship]
       shipClone[index].shipping = []
       rates.forEach(rate => {
@@ -417,13 +413,10 @@ const CheckoutForm = ({ cart, passOrderId }) => {
     setPaymentProcessing(true);
 
     let amount = Math.round(cartTotal*100)
-    console.log(amount)
 
     let { data: clientSecret } = await axios.post(`${url}/stripe/`, {
       amount
     });
-
-    console.log(clientSecret);
 
     const cardElement = elements.getElement(CardElement);
 
@@ -482,7 +475,6 @@ const CheckoutForm = ({ cart, passOrderId }) => {
         });
     }
 
-    console.log(confirmed);
   };
 
   return (
@@ -657,7 +649,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                 </Grid>
               </Grid>
               {ship.map((addr, index) => (
-                <div key={addr}>
+                <div key={index}>
                   <Grid
                     container
                     style={{ display: multiAddress ? "" : "none" }}
@@ -786,10 +778,11 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                         <RadioGroup>
                           {addr.shipping.map(op => (
                             <FormControlLabel
+                              key={op.service_type}
                               control={
                                 <Radio
                                   checked={op.selected}
-                                  name={index}
+                                  name={index.toString()}
                                   value={op.service_code}
                                   onClick={handleShipSelected}
                                 />
@@ -977,7 +970,7 @@ const SuccessForm = ({ orderId }) => {
                       </TableCell>
                     </TableRow>
                     {order.ship.map((addr) => (
-                      <>
+                      <Fragment key={addr.street1}>
                         <TableRow>
                           <TableCell colSpan={4}>
                             Shipping To: <br />
@@ -1017,7 +1010,7 @@ const SuccessForm = ({ orderId }) => {
                             </>
                           </>
                         ))}
-                      </>
+                      </Fragment>
                     ))}
                   </TableBody>
                 </Table>

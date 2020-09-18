@@ -11,7 +11,6 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  TextField,
   Input,
   InputAdornment,
   CircularProgress,
@@ -198,7 +197,7 @@ const Address = ({ addr, from, index, updateOrder }) => {
                 <FormControl style={{ minWidth: "90%" }}>
                   <InputLabel>Package Type</InputLabel>
                   <Select
-                    value={packaging}
+                    value={packaging ? packaging : ''}
                     onChange={(e) => setPackaging(e.target.value)}
                   >
                     {packageOptions.map((op) => (
@@ -274,8 +273,8 @@ const Address = ({ addr, from, index, updateOrder }) => {
           <Grid item xs={12}>
             <Table>
               <TableBody>
-                {addr.items.map((item) => (
-                  <Fragment key={item.name}>
+                {addr.items.map((item, index) => (
+                  <Fragment key={index}>
                     <TableRow>
                       <TableCell rowSpan={item.length + 1}>
                         <PDF width={100} url={item[0].url} />
@@ -292,8 +291,8 @@ const Address = ({ addr, from, index, updateOrder }) => {
                       <TableCell>Background</TableCell>
                       <TableCell>Qty</TableCell>
                     </TableRow>
-                    {item.map((op) => (
-                      <TableRow>
+                    {item.map((op, index) => (
+                      <TableRow key={index}>
                         <TableCell>{op.name}</TableCell>
                         <TableCell>{op.colorOption}</TableCell>
                         <TableCell>{op.bg ? "Yes" : "No"}</TableCell>

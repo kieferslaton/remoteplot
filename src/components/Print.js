@@ -245,9 +245,9 @@ const Print = ({ updateCart }) => {
     let items = [...printOptions];
     console.log(name, value);
     if (isNaN(parseInt(value))) {
-      items[name].qty = "";
+      items[parseInt(name)].qty = "";
     } else {
-      items[name].qty = parseInt(value);
+      items[parseInt(name)].qty = parseInt(value);
     }
     setPrintOptions(items);
   };
@@ -255,14 +255,14 @@ const Print = ({ updateCart }) => {
   const handleColorChange = (e) => {
     const { name, value } = e.target;
     let items = [...printOptions];
-    items[name].colorOption = value;
+    items[parseInt(name)].colorOption = value;
     setPrintOptions(items);
   };
 
   const handleBgChange = (e) => {
     const { name } = e.target;
     let items = [...printOptions];
-    items[name].bgOptions.forEach((option) => {
+    items[parseInt(name)].bgOptions.forEach((option) => {
       option.selected = !option.selected;
     });
     setPrintOptions(items);
@@ -343,6 +343,7 @@ const Print = ({ updateCart }) => {
           <Grid container className={classes.row}>
             {printOptions.map((option, index) => (
               <Grid
+                key={index}
                 item
                 xs={12}
                 sm={6}
@@ -357,7 +358,7 @@ const Print = ({ updateCart }) => {
                     <TextField
                       type="number"
                       label="No. of Copies"
-                      name={index}
+                      name={index.toString()}
                       value={printOptions[index].qty}
                       onChange={handleQtyChange}
                     />
@@ -372,7 +373,7 @@ const Print = ({ updateCart }) => {
                               ? true
                               : false
                           }
-                          name={index}
+                          name={index.toString()}
                           value="B&W"
                           onChange={handleColorChange}
                         />
@@ -389,7 +390,7 @@ const Print = ({ updateCart }) => {
                               ? true
                               : false
                           }
-                          name={index}
+                          name={index.toString()}
                           value="Color"
                           onChange={handleColorChange}
                         />
@@ -402,9 +403,8 @@ const Print = ({ updateCart }) => {
                       label="Does this print have a background image?"
                       control={
                         <Checkbox
-                          name={index}
+                          name={index.toString()}
                           type="checkbox"
-                          id="background"
                           checked={
                             printOptions[index].bgOptions[0].selected
                               ? false

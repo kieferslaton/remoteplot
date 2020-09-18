@@ -109,7 +109,7 @@ const PriceTable = () => {
       height: 36,
       width: 48,
       qty: 0,
-      size: "Standard Letter",
+      size: "Standard E",
       colorOption: "B&W",
       bgOptions: [
         {

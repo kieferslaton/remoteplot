@@ -11,8 +11,7 @@ const Admin = () => {
 
     useEffect(() => {
         if (Cookies.get('token')) {
-          const token = Cookies.get('token')
-          console.log(token);
+          const token = Cookies.get('token');
           const payload = { headers: { authorization: token } };
           axios
             .post(`${url}/users/accounts`, {}, payload)

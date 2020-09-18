@@ -41,6 +41,9 @@ const useStyles = makeStyles((theme) => ({
       flexGrow: 1,
     },
   },
+  logoImg: {
+    maxHeight: "90%"
+  }, 
   navLinks: {
     display: "flex",
     margin: theme.spacing(2),
@@ -207,7 +210,7 @@ function App() {
         <AppBar position="static" className={classes.appBar}>
           <Toolbar>
             <Link to="/" className={classes.logo}>
-              <img src={logoRed} alt="logo" style={{ height: 40 }} />
+              <img src={logoRed} alt="logo" className={classes.logoImg}/>
             </Link>
             <ul className={classes.navLinks}>
               <li className={classes.navLink}>
@@ -297,12 +300,7 @@ function App() {
         </Route>
       </Switch>
       <footer className={classes.footer}>
-        <Grid container style={{ justifyContent: "center" }}>
-          <Grid item xs={6} md={3} className={classes.footerCol}>
-            <h5>Shipping Rates</h5>
-            <p className={classes.footerText}>Fedex Ground $9.99</p>
-            <p className={classes.footerText}>Fedex Next Day Air $42.99</p>
-          </Grid>
+        <Grid container>
           <Grid item xs={6} md={3} className={classes.footerCol}>
             <Link to="/" className="logo" style={{ height: 40 }}>
               <img src={logo} alt="footer-logo" style={{ height: 40 }} />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Fragment } from "react";
 import { FaRegTimesCircle, FaPlus, FaMinus } from "react-icons/fa";
 import {
   Table,
@@ -89,7 +89,7 @@ const Cart = ({
               <Table>
                 <TableBody>
                   {localCart.map((url) => (
-                    <>
+                    <Fragment key={url[0].url}>
                       <TableRow>
                         <TableCell colSpan="4">
                           <PDF url={url[0].url} width={200} />
@@ -144,7 +144,7 @@ const Cart = ({
                           </TableRow>
                         ))}
                       </>
-                    </>
+                    </Fragment>
                   ))}
                   <TableRow>
                     <TableCell></TableCell>

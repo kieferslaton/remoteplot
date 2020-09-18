@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import {Container, Grid, TableRow, TableCell, IconButton, Collapse} from '@material-ui/core'
+import {TableRow, TableCell, IconButton, Collapse} from '@material-ui/core'
 import { FaChevronCircleDown, FaChevronCircleUp } from 'react-icons/fa'
 import Address from './Address'
 import axios from 'axios'
@@ -32,7 +32,7 @@ const Order = ({ order }) => {
             <TableCell colSpan={4} style={{padding: 0}}>
                 <Collapse in={open} unmountOnExit>
                     {order.ship.map((addr, index) => (
-                        <Address addr={addr} from={order.billingDetails} index={index} updateOrder={updateOrder}/>
+                        <Address addr={addr} from={order.billingDetails} index={index} key={index} updateOrder={updateOrder}/>
                     ))}
                 </Collapse>
             </TableCell>

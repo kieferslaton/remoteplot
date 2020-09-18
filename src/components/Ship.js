@@ -61,8 +61,8 @@ const Ship = () => {
                             </TableRow>
                         </TableHead>
                             <TableBody>
-                                {orders.sort((a, b) => (a.orderNumber < b.orderNumber) ? 1: -1).map(order => (
-                                    <Order order={order} />
+                                {orders.sort((a, b) => (a.orderNumber < b.orderNumber) ? 1: -1).map((order, index) => (
+                                    <Order order={order} key={index}/>
                                 ))}
                             </TableBody>
                     </Table>
