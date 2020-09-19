@@ -829,42 +829,42 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                         </>
                       ) : (
                         <>
-                              <Button
-                                variant="outlined"
-                                color={
-                                  !ship[index].shipping &&
-                                  ship[index].errors.includes("shipping")
-                                    ? "default"
-                                    : "primary"
-                                }
-                                onClick={() => calculateShipping(index)}
-                              >
-                                {ship[index].calculating ? (
-                                  <CircularProgress
-                                    size={20}
-                                    style={{ color: "#c30017" }}
-                                  />
-                                ) : (
-                                  "Calculate Shipping"
-                                )}
-                              </Button>
+                          <Button
+                            variant="outlined"
+                            color={
+                              !ship[index].shipping &&
+                              ship[index].errors.includes("shipping")
+                                ? "default"
+                                : "primary"
+                            }
+                            onClick={() => calculateShipping(index)}
+                          >
+                            {ship[index].calculating ? (
+                              <CircularProgress
+                                size={20}
+                                style={{ color: "#c30017" }}
+                              />
+                            ) : (
+                              "Calculate Shipping"
+                            )}
+                          </Button>
                         </>
                       )}
                     </Grid>
                     <Grid container className={classes.row}>
-                    <small
-                                style={{
-                                  display:
-                                    !ship[index].shipping &&
-                                    ship[index].errors.includes("shipping")
-                                      ? ""
-                                      : "none",
-                                  color: "red",
-                                }}
-                              >
-                                Please select shipping
-                              </small>
-                              </Grid>
+                      <small
+                        style={{
+                          display:
+                            !ship[index].shipping &&
+                            ship[index].errors.includes("shipping")
+                              ? ""
+                              : "none",
+                          color: "red",
+                        }}
+                      >
+                        Please select shipping
+                      </small>
+                    </Grid>
                     <Grid container className={classes.row}>
                       <small
                         style={{
