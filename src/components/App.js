@@ -209,8 +209,8 @@ function App() {
       <div className={classes.root}>
         <AppBar position="static" className={classes.appBar}>
           <Toolbar>
-            <Link to="/" className={classes.logo}>
-              <img src={logoRed} alt="logo" className={classes.logoImg} />
+            <Link to="/" className="logo-wrap">
+              <img src={logoRed} alt="logo" className="logo" />
             </Link>
             <ul className={classes.navLinks}>
               <li className={classes.navLink}>
@@ -300,10 +300,10 @@ function App() {
         </Route>
       </Switch>
       <footer className={classes.footer}>
-        <Grid container>
+        <Grid container style={{justifyContent: 'flex-end'}}>
           <Grid item xs={6} md={3} className={classes.footerCol}>
-            <Link to="/" className="logo" style={{ height: 40 }}>
-              <img src={logo} alt="footer-logo" style={{ height: 40 }} />
+            <Link to="/" className="logo-wrap">
+              <img src={logo} alt="footer-logo" className="logo"/>
             </Link>
             <p className={classes.footerText}>
               <FaEnvelope style={{ marginRight: 10 }} />
