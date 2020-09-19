@@ -37,12 +37,13 @@ const useStyles = makeStyles((theme) => ({
     position: "relative",
   },
   logo: {
+    height: 40, 
     [theme.breakpoints.down("sm")]: {
       flexGrow: 1,
     },
   },
   logoImg: {
-    maxHeight: "90%",
+    height: 40, 
   },
   navLinks: {
     display: "flex",
@@ -209,8 +210,8 @@ function App() {
       <div className={classes.root}>
         <AppBar position="static" className={classes.appBar}>
           <Toolbar>
-            <Link to="/" className="logo-wrap">
-              <img src={logoRed} alt="logo" className="logo" />
+            <Link to="/" className={classes.logo}>
+              <img src={logoRed} alt="logo" className={classes.logoImg} />
             </Link>
             <ul className={classes.navLinks}>
               <li className={classes.navLink}>
