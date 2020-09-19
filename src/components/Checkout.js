@@ -108,7 +108,9 @@ const CheckoutForm = ({ cart, passOrderId }) => {
   ]);
   const [globalErrors, setGlobalErrors] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
-  const [paymentError, setPaymentError] = useState(null)
+  const [shipError, setShipError] = useState([]);
+  const [paymentError, setPaymentError] = useState(null);
+  const [cardError, setCardError] = useState(null);
 
   useEffect(() => {
     let organizedCart = [];
@@ -142,9 +144,12 @@ const CheckoutForm = ({ cart, passOrderId }) => {
     let shipTotal = 0;
 
     ship.forEach((addr) => {
-      if(addr.shipping){
-      const shipPrice = addr.shipping.find(op => op.selected === true).price !== undefined ? addr.shipping.find(op => op.selected === true).price : 0
-      shipTotal += shipPrice;
+      if (addr.shipping) {
+        const shipPrice =
+          addr.shipping.find((op) => op.selected === true).price !== undefined
+            ? addr.shipping.find((op) => op.selected === true).price
+            : 0;
+        shipTotal += shipPrice;
       }
     });
 
@@ -171,16 +176,16 @@ const CheckoutForm = ({ cart, passOrderId }) => {
   };
 
   const handleShipSelected = (e) => {
-    const { name, value } = e.target
-    const shipClone = [...ship]
-    shipClone[parseInt(name)].shipping.forEach(op => {
-      if (op.service_code === value){
-        op.selected = true
+    const { name, value } = e.target;
+    const shipClone = [...ship];
+    shipClone[parseInt(name)].shipping.forEach((op) => {
+      if (op.service_code === value) {
+        op.selected = true;
       } else {
-        op.selected = false
+        op.selected = false;
       }
-    })
-    setShip(shipClone)
+    });
+    setShip(shipClone);
   };
 
   const calculateShipping = (index) => {
@@ -192,76 +197,83 @@ const CheckoutForm = ({ cart, passOrderId }) => {
       return;
     }
 
-    const shipClone = [...ship]
-    shipClone[index].calculating = true
-    setShip(shipClone)
+    const shipClone = [...ship];
+    shipClone[index].calculating = true;
+    setShip(shipClone);
 
     const headers = {
-      'api-key': process.env.REACT_APP_SHIPENGINE_KEY, 
-      'Content-Type': 'application/json'
-    }
+      "api-key": process.env.REACT_APP_SHIPENGINE_KEY,
+      "Content-Type": "application/json",
+    };
 
     const config = {
       headers,
-      baseUrl:  'https://api.shipengine.com',
-      validateStatus(){
-      return true;
-      }
+      baseUrl: "https://api.shipengine.com",
+      validateStatus() {
+        return true;
+      },
     };
 
     const data = {
-      "rate_options": {
-        "carrier_ids": [
-          process.env.REACT_APP_CARRIER
-        ]
+      rate_options: {
+        carrier_ids: [process.env.REACT_APP_CARRIER],
       },
-      "shipment": {
-        "validate_address": "validate_and_clean",
-        "ship_to": {
-          "name": ship[index].firstName+" "+ship[index].lastName, 
-          "address_line1": ship[index].street1,
-          "address_line2": ship[index].street2,
-          "city_locality": ship[index].city,
-          "state_province": ship[index].state,
-          "postal_code": ship[index].zip,
-          "country_code": "US"
+      shipment: {
+        validate_address: "validate_and_clean",
+        ship_to: {
+          name: ship[index].firstName + " " + ship[index].lastName,
+          address_line1: ship[index].street1,
+          address_line2: ship[index].street2,
+          city_locality: ship[index].city,
+          state_province: ship[index].state,
+          postal_code: ship[index].zip,
+          country_code: "US",
         },
-        "ship_from": {
-          "name": contact.firstName+" "+contact.lastName,
-          "phone": contact.tel,
-          "address_line1": contact.street1,
-          "address_line2": contact.street2,
-          "city_locality": contact.city,
-          "state_province": contact.state,
-          "postal_code": contact.zip,
-          "country_code": "US",
+        ship_from: {
+          name: contact.firstName + " " + contact.lastName,
+          phone: contact.tel,
+          address_line1: contact.street1,
+          address_line2: contact.street2,
+          city_locality: contact.city,
+          state_province: contact.state,
+          postal_code: contact.zip,
+          country_code: "US",
         },
-        "packages": [
+        packages: [
           {
-            "weight": {
-              "value": 16.0,
-              "unit": "ounce"
-            }
-          }
-        ]
-      }
-    }
+            weight: {
+              value: 16.0,
+              unit: "ounce",
+            },
+          },
+        ],
+      },
+    };
 
-    axios.post("https://cors-anywhere.herokuapp.com/https://api.shipengine.com/v1/rates", data, config).then(res => {
-      let rates = res.data.rate_response.rates.filter(rate => shippingOptions.includes(rate.service_code))
-      let shipClone=[...ship]
-      shipClone[index].shipping = []
-      rates.forEach(rate => {
-        shipClone[index].shipping.push({
-          service_code: rate.service_code, 
-          service_type: rate.service_type, 
-          price: rate.shipping_amount.amount,
-          selected: rate.service_code === shippingOptions[0]
-        })
+    axios
+      .post(
+        "https://cors-anywhere.herokuapp.com/https://api.shipengine.com/v1/rates",
+        data,
+        config
+      )
+      .then((res) => {
+        let rates = res.data.rate_response.rates.filter((rate) =>
+          shippingOptions.includes(rate.service_code)
+        );
+        let shipClone = [...ship];
+        shipClone[index].shipping = [];
+        rates.forEach((rate) => {
+          shipClone[index].shipping.push({
+            service_code: rate.service_code,
+            service_type: rate.service_type,
+            price: rate.shipping_amount.amount,
+            selected: rate.service_code === shippingOptions[0],
+          });
+        });
+        shipClone[index].calculating = false;
+        setShip(shipClone);
       })
-      shipClone[index].calculating=false
-      setShip(shipClone)
-    }).catch(err => console.log(err))
+      .catch((err) => console.log(err));
   };
 
   const addAddress = (e) => {
@@ -269,8 +281,8 @@ const CheckoutForm = ({ cart, passOrderId }) => {
     setShip([
       ...ship,
       {
-        firstName:"",
-        lastName:"",
+        firstName: "",
+        lastName: "",
         street1: "",
         street2: "",
         city: "",
@@ -317,22 +329,22 @@ const CheckoutForm = ({ cart, passOrderId }) => {
       city: ship[index].city,
       state: ship[index].state,
       zip: ship[index].zip,
-    }
+    };
 
-    let shipClone = [...ship]
+    let shipClone = [...ship];
 
     Object.keys(shipErrorFields).forEach((key) => {
       const name = key;
       const value = errorFields[key];
       if (value === "") {
-        shipClone[index].errors.push(name)
+        shipClone[index].errors.push(name);
       }
-    })
+    });
 
-    setShip(shipClone)
+    setShip(shipClone);
 
-    return errors
-  }
+    return errors;
+  };
 
   const errorCheck = () => {
     let errors = [];
@@ -369,12 +381,13 @@ const CheckoutForm = ({ cart, passOrderId }) => {
         city: addr.city,
         state: addr.state,
         zip: addr.zip,
+        shipping: addr.shipping,
       };
 
       Object.keys(errorFields).forEach((key) => {
         const name = key;
         const value = errorFields[key];
-        if (value === "") {
+        if (value === "" || !value) {
           addr.errors.push(name);
           errors.push(name + index);
         }
@@ -385,12 +398,22 @@ const CheckoutForm = ({ cart, passOrderId }) => {
     return errors;
   };
 
+  const handleCardChange = (e) => {
+    if (e.error) {
+      setCardError(e.error.message);
+    } else {
+      setCardError(null);
+    }
+  };
+
   const handlePay = async () => {
     let errors = errorCheck();
     if (errors.length > 0) {
       setGlobalErrors(true);
       return;
     }
+
+    if (cardError) return;
 
     if (!stripe || !elements) {
       return;
@@ -412,10 +435,10 @@ const CheckoutForm = ({ cart, passOrderId }) => {
     setGlobalErrors(false);
     setPaymentProcessing(true);
 
-    let amount = Math.round(cartTotal*100)
+    let amount = Math.round(cartTotal * 100);
 
     let { data: clientSecret } = await axios.post(`${url}/stripe/`, {
-      amount
+      amount,
     });
 
     const cardElement = elements.getElement(CardElement);
@@ -425,6 +448,19 @@ const CheckoutForm = ({ cart, passOrderId }) => {
       card: cardElement,
       billing_details: billingDetails,
     });
+
+    if (paymentMethodReq.error) {
+      setCardError(paymentMethodReq.error.message);
+      setPaymentProcessing(false);
+      return;
+    }
+
+    if (paymentMethodReq === undefined) {
+      setCardError(
+        "There was an error. Please re-enter your card and try again."
+      );
+      return;
+    }
 
     const confirmed = await stripe.confirmCardPayment(clientSecret, {
       payment_method: paymentMethodReq.paymentMethod.id,
@@ -470,11 +506,10 @@ const CheckoutForm = ({ cart, passOrderId }) => {
           passOrderId(res.data._id);
         })
         .catch((err) => {
-          setPaymentError(err.data)
-          setPaymentProcessing(false)
+          setPaymentError(err.data);
+          setPaymentProcessing(false);
         });
     }
-
   };
 
   return (
@@ -775,37 +810,61 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                     >
                       {addr.shipping ? (
                         <>
-                        <RadioGroup>
-                          {addr.shipping.map(op => (
-                            <FormControlLabel
-                              key={op.service_type}
-                              control={
-                                <Radio
-                                  checked={op.selected}
-                                  name={index.toString()}
-                                  value={op.service_code}
-                                  onClick={handleShipSelected}
-                                />
-                              }
-                              label={`${op.service_type} $${op.price}`}
-                            />
-                          ))}
+                          <RadioGroup>
+                            {addr.shipping.map((op) => (
+                              <FormControlLabel
+                                key={op.service_type}
+                                control={
+                                  <Radio
+                                    checked={op.selected}
+                                    name={index.toString()}
+                                    value={op.service_code}
+                                    onClick={handleShipSelected}
+                                  />
+                                }
+                                label={`${op.service_type} $${op.price}`}
+                              />
+                            ))}
                           </RadioGroup>
                         </>
                       ) : (
-                        <Button
-                          variant="outlined"
-                          color="primary"
-                          onClick={() => calculateShipping(index)}
-                        >
-                          {ship[index].calculating ? (
-                    <CircularProgress size={20} style={{ color: "#c30017" }} />
-                  ) : (
-                    'Calculate Shipping'
-                  )}
-                        </Button>
+                        <>
+                              <Button
+                                variant="outlined"
+                                color={
+                                  !ship[index].shipping &&
+                                  ship[index].errors.includes("shipping")
+                                    ? "default"
+                                    : "primary"
+                                }
+                                onClick={() => calculateShipping(index)}
+                              >
+                                {ship[index].calculating ? (
+                                  <CircularProgress
+                                    size={20}
+                                    style={{ color: "#c30017" }}
+                                  />
+                                ) : (
+                                  "Calculate Shipping"
+                                )}
+                              </Button>
+                        </>
                       )}
                     </Grid>
+                    <Grid container className={classes.row}>
+                    <small
+                                style={{
+                                  display:
+                                    !ship[index].shipping &&
+                                    ship[index].errors.includes("shipping")
+                                      ? ""
+                                      : "none",
+                                  color: "red",
+                                }}
+                              >
+                                Please select shipping
+                              </small>
+                              </Grid>
                     <Grid container className={classes.row}>
                       <small
                         style={{
@@ -898,6 +957,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
             <Paper elevation={3} className={classes.paper}>
               <h5 style={{ marginBottom: 10 }}>Payment</h5>
               <CardElement
+                onChange={handleCardChange}
                 className={classes.cardElement}
                 MenuItems={{
                   style: {
@@ -931,9 +991,20 @@ const CheckoutForm = ({ cart, passOrderId }) => {
                   One or more required fields is missing.
                 </small>
                 <small
-                  style={{color: 'red', display: paymentError ? "" : "none"}}>
-                    {paymentError}
-                  </small>
+                  style={{ color: "red", display: shipError ? "" : "none" }}
+                >
+                  {shipError}
+                </small>
+                <small
+                  style={{ color: "red", display: paymentError ? "" : "none" }}
+                >
+                  {paymentError}
+                </small>
+                <small
+                  style={{ color: "red", display: cardError ? "" : "none" }}
+                >
+                  {cardError}
+                </small>
               </Grid>
             </Paper>
           </div>
