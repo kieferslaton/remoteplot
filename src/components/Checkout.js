@@ -204,6 +204,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
     const headers = {
       "api-key": process.env.REACT_APP_SHIPENGINE_KEY,
       "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*"
     };
 
     const config = {
@@ -252,7 +253,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
 
     axios
       .post(
-        "https://cors-anywhere.herokuapp.com/https://api.shipengine.com/v1/rates",
+        "https://rocky-badlands-97307.herokuapp.com/https://api.shipengine.com/v1/rates",
         data,
         config
       )
@@ -495,7 +496,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
 
           emailjs
             .send(
-              "gmail",
+              "remoteplot",
               process.env.REACT_APP_EMAIL_TEMPLATE,
               templateParams,
               process.env.REACT_APP_EMAIL_KEY

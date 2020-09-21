@@ -21,6 +21,7 @@ import axios from "axios";
 import { makeStyles } from "@material-ui/core/styles";
 import PDF from "./PDF";
 import { storage } from "../firebase/firebase";
+import * as emailjs from "emailjs-com";
 
 const useStyles = makeStyles((theme) => ({
   row: {
@@ -147,7 +148,7 @@ const Address = ({ addr, from, index, updateOrder }) => {
 
     axios
       .post(
-        "https://cors-anywhere.herokuapp.com/https://api.shipengine.com/v1/labels",
+        "https://rocky-badlands-97307.herokuapp.com/https://api.shipengine.com/v1/labels",
         data,
         config
       )
@@ -159,6 +160,21 @@ const Address = ({ addr, from, index, updateOrder }) => {
           res.data.label_download.pdf,
           res.data.tracking_number
         );
+
+        let templateParams = {
+          name: from.name,
+          email: from.email, 
+          toName: addr.firstName+" "+addr.lastName,
+          trackingNumber: res.data.tracking_number,
+        }
+
+        emailjs.send(
+          "remoteplot", 
+          process.env.REACT_APP_TRACKING_EMAIL_TEMPLATE, 
+          templateParams, 
+          process.env.REACT_APP_EMAIL_KEY
+        ).then(res => console.log(res.data)).catch(err => console.log(err));
+
         setShippingProcessing(false);
       })
       .catch((err) => {

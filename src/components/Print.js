@@ -438,7 +438,7 @@ const Print = ({ updateCart }) => {
             ))}
           </Grid>
           <div style={{ marginBottom: 40 }}>
-            <Grid container className={classes.row}>
+            <Grid container className={classes.row} style={{display: fileUrl ? "" : "none"}}>
               <Button
                 variant="outlined"
                 color="primary"
