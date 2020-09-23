@@ -190,7 +190,7 @@ const Print = ({ updateCart }) => {
           bgOptions: [
             {
               name: "No Image Background",
-              price: [5, 4],
+              price: [4, 5],
               selected: true,
             },
             {
