@@ -21,7 +21,7 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(2),
     justifyContent: "center",
     borderRadius: 0,
-    minHeight: 250,
+    minHeight: 200,
     [theme.breakpoints.down("sm")]: {
       fontSize: "0.8em",
     },
@@ -84,13 +84,7 @@ const Home = () => {
               <h4 className={classes.subHeader}>
                 Select <FaHandPointUp className="button-icon" />
               </h4>
-              <p>Choose your size, paper, and other options.</p>
-              <br />
-              <ul>
-                <li>Color and B/W available</li>
-                <li>Bond, mylar, photo paper options</li>
-                <li>Options for 1/2 size packages</li>
-              </ul>
+              <p>Choose your size, color and background options. Media used is 20lb bond.</p>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={4} className={classes.subItem}>
