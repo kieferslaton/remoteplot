@@ -106,6 +106,9 @@ const useStyles = makeStyles((theme) => ({
     textAlign: "center",
   },
   footerText: {
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
     [theme.breakpoints.down("xs")]: {
       fontSize: "0.7em",
     },
@@ -301,7 +304,12 @@ function App() {
         </Route>
       </Switch>
       <footer className={classes.footer}>
-        <Grid container style={{justifyContent: 'flex-end'}}>
+        <Grid container style={{justifyContent: 'center', alignItems: 'center'}}>
+        <Grid item xs={6} md={3} className={classes.footerCol}>
+            <p className={classes.footerText} style={{fontSize: '0.9rem', fontWeight: 300}}>
+              RemotePlot is built, maintained and operated by U.S. based surveyors and engineers.
+            </p>
+          </Grid>
           <Grid item xs={6} md={3} className={classes.footerCol}>
             <Link to="/" className="logo-wrap">
               <img src={logo} alt="footer-logo" className="logo"/>
@@ -309,10 +317,6 @@ function App() {
             <p className={classes.footerText}>
               <FaEnvelope style={{ marginRight: 10 }} />
               info@remoteplot.com
-            </p>
-            <p className={classes.footerText}>
-              <FaLocationArrow style={{ marginRight: 10 }} />
-              95 Business Park Dr, <br /> Vicksburg, MS 39180
             </p>
           </Grid>
         </Grid>

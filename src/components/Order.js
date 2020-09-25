@@ -33,6 +33,7 @@ const Order = ({ order }) => {
         </TableCell>
         <TableCell>{order.orderNumber}</TableCell>
         <TableCell>{order.billingDetails.name}</TableCell>
+        <TableCell>{order.total ? '$'+order.total : ''}</TableCell>
         <TableCell>
           {order.ship.filter((addr) => addr.tracking).length ===
           order.ship.length

@@ -64,6 +64,7 @@ const Ship = () => {
                 <TableCell></TableCell>
                 <TableCell>Order Number</TableCell>
                 <TableCell>Customer Name</TableCell>
+                <TableCell>Order Total</TableCell>
                 <TableCell>Complete</TableCell>
               </TableRow>
             </TableHead>

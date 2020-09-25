@@ -51,7 +51,7 @@ const Print = ({ updateCart }) => {
     {
       height: 8.5,
       width: 11,
-      qty: 0,
+      qty: 1,
       size: "Standard Letter",
       colorOption: "B&W",
       bgOptions: [
@@ -70,7 +70,7 @@ const Print = ({ updateCart }) => {
     {
       height: 8.5, 
       width: 14,
-      qty: 0, 
+      qty: 1, 
       size: "Standard Legal", 
       colorOption: "B&W", 
       bgOptions: [
@@ -89,7 +89,7 @@ const Print = ({ updateCart }) => {
     {
       height: 11,
       width: 17,
-      qty: 0,
+      qty: 1,
       size: "Tabloid Size",
       colorOption: "B&W",
       bgOptions: [
@@ -108,7 +108,7 @@ const Print = ({ updateCart }) => {
     {
       height: 18,
       width: 24,
-      qty: 0,
+      qty: 1,
       size: "Standard C",
       colorOption: "B&W",
       bgOptions: [
@@ -127,7 +127,7 @@ const Print = ({ updateCart }) => {
     {
       height: 24,
       width: 36,
-      qty: 0,
+      qty: 1,
       size: "Standard D",
       colorOption: "B&W",
       bgOptions: [
@@ -146,7 +146,7 @@ const Print = ({ updateCart }) => {
     {
       height: 36,
       width: 48,
-      qty: 0,
+      qty: 1,
       size: "Standard Letter",
       colorOption: "B&W",
       bgOptions: [
@@ -184,7 +184,7 @@ const Print = ({ updateCart }) => {
         filteredOptions.push({
           height: fileDims.height,
           width: fileDims.width,
-          qty: 0,
+          qty: 1,
           size: "Custom",
           colorOption: "B&W",
           bgOptions: [

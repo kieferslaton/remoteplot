@@ -204,7 +204,7 @@ const CheckoutForm = ({ cart, passOrderId }) => {
     const headers = {
       "api-key": process.env.REACT_APP_SHIPENGINE_KEY,
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*"
+      "Access-Control-Allow-Origin": "*",
     };
 
     const config = {
@@ -483,6 +483,9 @@ const CheckoutForm = ({ cart, passOrderId }) => {
         orderNumber: orderNumber,
         billingDetails: billingDetails,
         ship: shipClone,
+        subtotal: cartSubtotal,
+        shipTotal: shipTotal,
+        total: cartTotal,
       };
 
       axios
@@ -1082,6 +1085,21 @@ const SuccessForm = ({ orderId }) => {
                             </>
                           </>
                         ))}
+                        <TableRow>
+                          <TableCell colSpan={2}></TableCell>
+                          <TableCell>Subtotal:</TableCell>
+                          <TableCell>${order.subtotal.toFixed(2)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell colSpan={2}></TableCell>
+                          <TableCell>Shipping:</TableCell>
+                          <TableCell>${order.shipTotal.toFixed(2)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell colSpan={2}></TableCell>
+                          <TableCell>Total:</TableCell>
+                          <TableCell>${order.total.toFixed(2)}</TableCell>
+                        </TableRow>
                       </Fragment>
                     ))}
                   </TableBody>
