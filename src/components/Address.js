@@ -22,6 +22,8 @@ import { makeStyles } from "@material-ui/core/styles";
 import PDF from "./PDF";
 import { storage } from "../firebase/firebase";
 import * as emailjs from "emailjs-com";
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const useStyles = makeStyles((theme) => ({
   row: {
@@ -46,7 +48,7 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(2),
   },
   button: {
-    margin: theme.spacing(2),
+    margin: theme.spacing(2)
   },
 }));
 
@@ -89,6 +91,63 @@ const Address = ({ addr, from, index, updateOrder }) => {
       setWeight(parseInt(e.target.value));
     }
   };
+
+  const generateOrderSlip = (addr) => {
+
+    var buttons = document.querySelectorAll('.download');
+
+    for( let i = 0 ; i < buttons.length; i++){
+      buttons[i].style.display = 'none';
+    }
+
+    let address
+    let orders
+
+    let addressRatio = (document.getElementById('recipient').offsetHeight)/(document.getElementById('recipient').offsetWidth);
+    let orderRatio = (document.getElementById('orders').offsetHeight)/(document.getElementById('orders').offsetWidth);
+
+    html2canvas(document.getElementById('recipient'), {
+      logging: true, 
+      profile: true,
+      useCORS: true
+    }).then((canvas) => {
+      address = canvas.toDataURL('image/jpeg');
+      html2canvas(document.getElementById('orders'), {
+        logging: true,
+        profile: true,
+        useCORS: true
+      }).then((canvas) => {
+        orders = canvas.toDataURL('image/jpeg');
+        let doc = new jsPDF('p','in', [11, 8.5]);
+        doc.deletePage(1);
+        doc.addPage();
+        doc.addImage(
+          address,
+          'jpeg',
+          0,
+          0.5,
+          3,
+          3*addressRatio
+        )
+        doc.addImage(
+          orders,
+          'jpeg',
+          0.5,
+          2.5,
+          7.5,
+          7.5*orderRatio
+        )
+
+        const pdfURL = doc.output('bloburl');
+        window.open(pdfURL, "_blank");
+
+        for( let i = 0 ; i < buttons.length; i++){
+          buttons[i].style.display = 'block';
+        }
+
+      })
+    })
+  }
 
   const orderShippingLabel = () => {
     if (weight === 0) {
@@ -187,7 +246,7 @@ const Address = ({ addr, from, index, updateOrder }) => {
     <>
       <Container>
         <Grid container spacing={3} className={classes.row}>
-          <Grid item xs={12} sm={6} md={4} style={{ textAlign: "center" }}>
+          <Grid item xs={12} sm={6} md={4} style={{ textAlign: "center" }} id="recipient">
             <h5>Recipient</h5>
             <p>
               {addr.firstName} {addr.lastName}
@@ -279,6 +338,13 @@ const Address = ({ addr, from, index, updateOrder }) => {
                     Print Shipping Label
                   </Button>
                 </form>
+                <br />
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    type="submit"
+                    onClick={() => generateOrderSlip(addr)}
+                  >Print Order Slip</Button>
               </Grid>
             </Grid>
           </Grid>
@@ -286,7 +352,7 @@ const Address = ({ addr, from, index, updateOrder }) => {
         <Divider />
         <Grid container spacing={3} className={classes.row}>
           <Grid item xs={12}>
-            <Table>
+            <Table id='orders'>
               <TableBody>
                 {addr.items.map((item, index) => (
                   <Fragment key={index}>
@@ -295,6 +361,7 @@ const Address = ({ addr, from, index, updateOrder }) => {
                         <PDF width={100} url={item[0].url} />
                         <br />
                         <Button
+                          className="download"
                           type="submit"
                           onClick={() => downloadFile(item[0].url)}
                         >

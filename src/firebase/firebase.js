@@ -2,7 +2,6 @@ import firebase from 'firebase/app'
 import 'firebase/storage'
 import 'firebase/analytics'
 
-
 var firebaseConfig = {
     apiKey: process.env.REACT_APP_FIREBASE_API, 
     authDomain: "remoteplot.firebaseapp.com",
