@@ -214,7 +214,7 @@ function App() {
         <AppBar position="static" className={classes.appBar}>
           <Toolbar>
             <Link to="/" className={classes.logo}>
-              <img src={logoRed} alt="logo" className={classes.logoImg} />
+              <img src={logoRed} alt="logo" className={classes.logoImg} id="logo" />
             </Link>
             <ul className={classes.navLinks}>
               <li className={classes.navLink}>

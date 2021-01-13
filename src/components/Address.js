@@ -102,9 +102,11 @@ const Address = ({ addr, from, index, updateOrder }) => {
 
     let address
     let orders
+    let logo
 
     let addressRatio = (document.getElementById('recipient').offsetHeight)/(document.getElementById('recipient').offsetWidth);
     let orderRatio = (document.getElementById('orders').offsetHeight)/(document.getElementById('orders').offsetWidth);
+    let logoRatio = (document.getElementById('logo').offsetHeight)/(document.getElementById('logo').offsetWidth);
 
     html2canvas(document.getElementById('recipient'), {
       logging: true, 
@@ -118,7 +120,13 @@ const Address = ({ addr, from, index, updateOrder }) => {
         useCORS: true
       }).then((canvas) => {
         orders = canvas.toDataURL('image/jpeg');
-        let doc = new jsPDF('p','in', [11, 8.5]);
+        html2canvas(document.getElementById('logo'), {
+          logging: true,
+          profile: true,
+          useCORS: true
+        }).then((canvas) => {
+          logo = canvas.toDataURL('image/jpeg');
+          let doc = new jsPDF('p','in', [11, 8.5]);
         doc.deletePage(1);
         doc.addPage();
         doc.addImage(
@@ -138,8 +146,18 @@ const Address = ({ addr, from, index, updateOrder }) => {
           7.5*orderRatio
         )
 
+        doc.addImage(
+          logo,
+          'jpeg',
+          7,
+          0.5,
+          1,
+          1*logoRatio
+        )
+
         const pdfURL = doc.output('bloburl');
         window.open(pdfURL, "_blank");
+        })
 
         for( let i = 0 ; i < buttons.length; i++){
           buttons[i].style.display = 'block';
