@@ -178,8 +178,7 @@ const Address = ({ addr, from, index, updateOrder }) => {
     setShippingProcessing(true);
     const headers = {
       "api-key": process.env.REACT_APP_SHIPENGINE_KEY,
-      "Content-Type": "application/json",
-      'origin': 'remoteplot.com'
+      "Content-Type": "application/json"
     };
 
     const config = {
